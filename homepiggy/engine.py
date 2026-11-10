@@ -34,10 +34,10 @@ class SaverProfile:
 
     horizon_years: int = 10
     initial_eur: float = 1000.0
-    monthly_contribution_eur: float = 250.0
-    gross_income_eur: float = 30000.0          # annual gross income at start (2026 euros)
+    monthly_contribution_eur: float = 550.0
+    gross_income_eur: float = 60000.0          # annual gross income at start (2026 euros)
     real_wage_growth: float = 0.01             # p.a. above CPI (career progression)
-    house_price_eur: float = 350000.0          # target home's price today (2026 euros)
+    house_price_eur: float = 400000.0          # target home's price today (2026 euros)
     student_debt_eur: float = 0.0
     student_rate: float = 0.0233               # DUO rate (user input; see docs/SOURCES.md)
     student_repay_start_month: int = 48        # months from start when DUO repayment begins
