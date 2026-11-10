@@ -1,0 +1,111 @@
+# =============================================================================
+# Dutch housing / tax policy parameters, calendar year 2026.
+#
+# Every number carries a `source` (URL) and a `verification` level:
+#   primary    - read directly from the official legal text or government page
+#   secondary  - official/government explanatory page or reputable secondary
+#                source that quotes the official figure; primary not yet read
+#   assumption - modelling assumption, NOT a sourced fact; user should review
+#
+# Retrieved: 2026-11-10. Rules change every 1 January; re-verify each year.
+# =============================================================================
+
+meta:
+  country: NL
+  policy_year: 2026
+  retrieved: "2026-11-10"
+
+mortgage_income_test:
+  financing_cost_table:
+    file: financieringslast_2026_non_aow.csv
+    description: >-
+      Bijlage 1, Tabel 1 "Financieringslastpercentages voor consumenten die de
+      AOW-leeftijd nog niet hebben bereikt". Rows = toetsinkomen (EUR, lower
+      bound of 1,000-wide bracket; first row "–" = incomes below 30,000).
+      Columns = toetsrente brackets (<=1.500%, 1.501-2.000%, ..., >=6.501%).
+    source: "https://zoek.officielebekendmakingen.nl/stcrt-2025-36471.pdf"
+    source_title: "Wijzigingsregeling hypothecair krediet 2026, Staatscourant 2025 nr. 36471 (31 Oct 2025); Artikel II: in force 1 Jan 2026"
+    source_sha256: bc3cde8f0ed6aa0b68aa7ebf4c6cf888a30b256104e38a4af52faff023da47ea
+    extraction: "tools/extract_flp_table.py (machine extraction, no hand transcription)"
+    verification: primary
+  income_above_top_row:
+    rule: use_top_row
+    note: "Incomes above EUR 125,000 use the EUR 125,000 row. The table ends at 125,000; this treatment is a modelling assumption."
+    verification: assumption
+  annuity_term_months: 360
+  annuity_basis_source: "https://www.volkshuisvestingnederland.nl/onderwerpen/tijdelijke-regeling-hypothecair-krediet/maximale-hypotheek-op-basis-van-inkomen"
+  annuity_basis_note: "Income test assumes an annuity repayment schedule; 30-year term used for the burden."
+  annuity_verification: secondary
+  test_rate:
+    short_fixed_period_threshold_years: 10
+    short_fixed_period_minimum_rate: 0.05
+    rule: "fixed period >= 10y: test at the actual mortgage rate; < 10y: max(actual, AFM toetsrente)"
+    source: "https://nieuws.vancampendijkstra.nl/related/hypotheken/maandlasten-hypotheek"
+    note: "AFM toetsrente set at 5% for Q2 and Q3 2026 (quarterly review)."
+    verification: secondary
+  single_person_extra_loan:
+    amount_eur: 17000
+    min_toetsinkomen_eur: 30000
+    source_threshold: "https://zoek.officielebekendmakingen.nl/stcrt-2025-36471.pdf"
+    source_threshold_note: "Artikel I A: threshold for singles below AOW age raised from 28,000 to 30,000"
+    source_amount: "https://zoek.officielebekendmakingen.nl/stcrt-2024-35962.odt"
+    source_amount_note: "2025 amendment, Artikel I B: amount 16,000 -> 17,000; the 2026 amendment leaves it unchanged; Nibud advice (blg-1221422) says it can stay at 17,000 for 2026"
+    verification: primary
+  student_loan_grossup:
+    description: "Monthly DUO instalment is multiplied by the bruteringsfactor (by toetsrente) and counted as financing cost (Art. 3a lid 2)."
+    brackets_upper_pct: [2.000, 2.500, 3.000, 3.500, 4.000, 4.500, 5.000, 5.500, 6.000, .inf]
+    factors:            [1.05,  1.10,  1.15,  1.20,  1.20,  1.25,  1.30,  1.30,  1.35,  1.40]
+    instalment_rule: "If no instalment is due yet (aanloopfase), use the instalment implied by actual remaining debt, actual rate and remaining term (Art. 3a lid 3)."
+    source: "https://zoek.officielebekendmakingen.nl/stcrt-2024-35962.odt"
+    source_note: "Wijzigingsregeling hypothecair krediet 2025, Artikel I C; not amended by the 2026 regulation"
+    verification: primary
+  energy_label_extra_loan_eur:
+    description: "Art. 4 lid 3 (2026): amount disregarded in the financing cost, by the home's energy label."
+    table: {"EFG": 0, "CD": 5000, "AB": 10000, "A+_A++": 20000, "A+++": 25000, "A++++": 30000, "A++++_guarantee": 40000}
+    source: "https://zoek.officielebekendmakingen.nl/stcrt-2025-36471.pdf"
+    verification: primary
+
+loan_to_value:
+  max_ltv: 1.00
+  source: "https://www.volkshuisvestingnederland.nl/onderwerpen/tijdelijke-regeling-hypothecair-krediet/maximale-hypotheek-op-basis-van-woningwaarde-ltv"
+  verification: secondary
+
+transfer_tax:
+  owner_occupier_rate: 0.02
+  non_owner_occupier_rate: 0.08
+  starters_exemption:
+    min_age: 18
+    max_age_exclusive: 35
+    once_only: true
+    must_owner_occupy: true
+    house_value_limit_eur: 555000
+    rule: "If the value exceeds the limit, no exemption at all (the 2% rate applies to the whole value)."
+    source: "https://www.belastingdienst.nl/wps/wcm/connect/bldcontentnl/belastingdienst/prive/woning/overdrachtsbelasting/startersvrijstelling"
+    cross_check: "https://www.rijksoverheid.nl/onderwerpen/huis-kopen/vraag-en-antwoord/vrijstelling-overdrachtsbelasting"
+    verification: primary
+  source: "https://www.rijksoverheid.nl/onderwerpen/huis-kopen/vraag-en-antwoord/vrijstelling-overdrachtsbelasting"
+  verification: primary
+
+nhg:
+  cost_limit_eur: 470000
+  energy_measures_limit_eur: 498200
+  one_off_premium_rate: 0.004
+  source: "https://www.rijksoverheid.nl/actueel/nieuws/2025/10/08/nhg-grens-stijgt-naar--euro--470.000-euro-afsluitpremie-blijft-04"
+  verification: primary
+
+box3:
+  tax_rate: 0.36
+  allowance_single_eur: 59357
+  allowance_partners_eur: 118714
+  deemed_return:
+    bank_deposits: 0.0128     # provisional; definitive early 2027
+    other_assets: 0.0600      # definitive
+    debts: 0.0270             # provisional
+  debt_threshold_single_eur: 3800
+  counter_evidence_allowed: true   # tegenbewijsregeling: taxed on actual return if lower
+  source: "https://www.sra.nl/nieuws/004501/2026/01/box-3-percentages-vrijstellingen-en-bedragen-2026"
+  verification: secondary
+  note: >-
+    Not yet cross-checked on belastingdienst.nl. The calculation follows the
+    statutory steps: rendementsgrondslag -> effective deemed-return % ->
+    (grondslag - allowance) -> voordeel -> tax.
