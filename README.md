@@ -31,8 +31,8 @@ separately.
 | Step | Status |
 |---|---|
 | 1. Python core | done (PR #1): engine, NL rules |
-| 2. Calibration from cited data, two regime methods, 200-replicate bootstrap bands, historical scenarios | done (this branch) |
-| 3. Streamlit app (analysis) | planned |
+| 2. Calibration from cited data, two regime methods, 200-replicate bootstrap bands, historical scenarios | done |
+| 3. Streamlit app (analysis) | done (this branch) |
 | 4. Browser app (pitch) | planned |
 
 Calibrated NL parameters live in `params/` (`nl_calibrated*.yaml`,
@@ -55,15 +55,35 @@ homepiggy/
   metrics.py           Wilson / order-statistic intervals, IRR, drawdown
   engine.py            run(), compare() on common random numbers
   uncertainty.py       option-C bands across bootstrap parameter sets
+  analysis.py          parallel band studies + path detail for the apps
   data/nl/             sourced 2026 policy data
 docs/METHODS.md        every method, equation, assumption and deviation
 docs/SOURCES.md        every data source and its verification level
 docs/CALIBRATION.md    estimates, validation, scenarios (generated from outputs)
 docs/LIMITATIONS.md    every known limitation, with its size where measurable
 calibration/           data download, regime labelling, estimation, bootstrap, validation
+streamlit_app/         the glidepath lab (analysis app)
 tools/                 reproducible extraction of official tables
 params/                calibrated NL parameters, bootstrap sets, scenarios; synthetic test file
 ```
+
+## Glidepath lab (Streamlit)
+
+```bash
+.venv/bin/pip install -e '.[app]'
+.venv/bin/streamlit run streamlit_app/app.py
+```
+
+Set the saver, the strategies to compare, the protected-equity buffer, the regime method
+(or both side by side), the number of re-calibrations and paths, and an optional historical
+episode, then press **Run analysis**. The tabs are:
+
+- **Results:** bands per strategy and paired comparisons.
+- **Paths:** fan chart and allocation for the median re-calibration.
+- **Affordability:** what you could borrow today and at purchase.
+- **Drivers:** which estimated parameters move the result.
+- **Regimes:** the history and today's probabilities.
+- **Methods & limitations.**
 
 ## Quick start
 

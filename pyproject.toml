@@ -12,9 +12,10 @@ dependencies = ["numpy>=1.26", "scipy>=1.11", "pyyaml>=6.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+app = ["streamlit>=1.40", "altair>=5", "pandas>=2"]
 
 [tool.setuptools.packages.find]
-include = ["homepiggy*"]
+include = ["homepiggy*", "streamlit_app*"]
 
 [tool.setuptools.package-data]
 "homepiggy.data.nl" = ["*.yaml", "*.csv"]
