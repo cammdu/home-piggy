@@ -56,3 +56,34 @@ def scenario_from_dict(d: Mapping[str, Any]) -> Scenario:
 
 
 BASELINE = Scenario()
+
+
+def historical_scenario(event: Mapping[str, Any], horizon_months: int, end_months_before_purchase: int = 0,
+                        sources: tuple[str, ...] = ()) -> Scenario:
+    """Place a data-derived historical episode (params/nl_scenarios.json) inside the horizon.
+
+    The episode's regime path is forced month by month and its residual shocks are
+    spread evenly over its duration. By default it ends exactly at the purchase date,
+    the worst timing for sequence risk.
+    """
+    n = int(event["duration_months"])
+    end = horizon_months - int(end_months_before_purchase)
+    start = end - n
+    if start < 0 or end > horizon_months:
+        raise ValueError(f"Episode of {n} months does not fit with end {end_months_before_purchase} months before purchase.")
+    path = list(event["regime_path"])
+    segs, i = [], 0
+    while i < n:
+        j = i
+        while j < n and path[j] == path[i]:
+            j += 1
+        segs.append(RegimeSegment(start + i, start + j, path[i]))
+        i = j
+    sh = event["shocks"]
+    shock = ShockEvent(month=start, duration_months=n, equity_log=sh["equity_log"], house_log=sh["house_log"],
+                       short_rate=sh["short_rate"], term_spread=sh["term_spread"],
+                       mortgage_rate=sh["mortgage_rate"], inflation=sh["inflation"])
+    w = event.get("window", ["?", "?"])
+    return Scenario(name=event["name"], description=f"{event.get('description', '')} (replay of {w[0]} to {w[1]})",
+                    segments=tuple(segs), shocks=(shock,),
+                    sources=tuple(sources) or (f"Measured from calibration data, window {w[0]}..{w[1]}",))

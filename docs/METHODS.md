@@ -36,10 +36,11 @@ volatility / sqrt(12).
   ranges. The same uniforms are consumed in every month, so paths under
   different scenarios are identical before the first forced month (common
   random numbers).
-* **Estimation (step 2).** P will be estimated by maximum likelihood (row-
-  normalised transition counts) from a historical regime series labelled with
-  the repo's threshold classifier, applied to euro-area data. Sampling error
-  will be reported. `empirical_transition_matrix` is the estimator.
+* **Estimation (step 2, done).** P is estimated by maximum likelihood
+  (row-normalised transition counts) from historical regime labels, under two
+  labelling methods kept side by side: the repo's threshold classifier applied
+  to euro-area data, and a 4-state Gaussian hidden Markov model as a
+  cross-check. See [CALIBRATION.md](CALIBRATION.md).
 
 **Why a Markov chain:** it is the simplest model that produces regime
 persistence and random timing, both essential for a 10-year horizon. Each
@@ -206,6 +207,13 @@ mortgage:
    * NHG premium: 0.4% of the loan if the loan ≤ NHG limit (optional).
    * Other buyer costs: user input.
 
+**Optional own savings target (user setting, default 10%).** Besides the legal
+minimum D, the saver can set an own goal: G = max(D, X% × price at purchase +
+buying costs). It is reported as a separate outcome, P(pot ≥ G), and the
+lock-in glidepath locks when the pot reaches G. It matters most for high
+earners, where the legal minimum shrinks to the buying costs. X is the saver's
+choice, not a regulation.
+
 **Projection to the purchase date (assumption):** the 2026 rules are held
 constant in real terms.
 * Euro thresholds (income brackets, singles amount and threshold, energy
@@ -264,7 +272,11 @@ Every reported number carries its Monte Carlo uncertainty.
 | Agreed | Implemented | Why |
 |---|---|---|
 | Each regime sets mean / vol / correlation of every variable | Same, but *levels* (rates, inflation) mean-revert to a regime-specific level instead of being drawn iid | Rates are levels, not returns. iid draws would make them jump between regime means every month, which is unrealistic and would overstate bond losses. |
-| House-price growth from the regime mean / vol | Adds AR(1) momentum (phi), estimated in step 2; phi = 0 recovers the iid case | Housing returns are strongly autocorrelated (Case & Shiller 1989). Ignoring this understates how far prices can run ahead of savings over 10 years. |
+| House-price growth from the regime mean / vol | Adds AR(1) persistence (phi) in *latent* growth, estimated in step 2 by Kalman-filter maximum likelihood with index measurement noise; phi = 0 recovers the iid case | Housing returns are strongly autocorrelated (Case & Shiller 1989). The CBS monthly index contains sampling noise that hides this (lag-1 autocorrelation 0.36 < lag-2 0.50), and a plain AR(1) covered only 13% of historical 10-year windows. The state-space model (with the mean constraint below) raises that to 100% under both regime methods (30 overlapping windows). |
+| House-price long-run mean by likelihood | Frequency-weighted regime mean fixed to the sample mean (method of moments); regime differences, persistence and noise by Kalman maximum likelihood | With phi near 1 the likelihood estimate of the level was biased (+2.3 pp p.a. vs the 3.7% sample mean). The sample mean is the robust estimator of a stationary process's mean. |
+| Calibration sample "from 1999" | Regime-conditional estimates use 2002-02 to 2026-09 | The repo classifier needs 24 months of indicator history, and the euro-area unemployment series starts 2000-03. |
+| Rate regime levels from OLS | Constrained least squares: each regime's long-run level must lie inside the observed range | Over 2002–2026 rates behave almost like a random walk, so unconstrained regime levels came out at 35% / −12%. Binding constraints are reported. |
+| One regime classifier | Two (repo classifier + HMM), both calibrated and bootstrapped | You asked for both. They agree on only 38.5% of months (κ = 0.21), so results are shown under each. |
 | Bond roll-down "by rolling 1 year down the curve" (repo) | Roll-down = D × slope for a constant-maturity fund | A 1–3y index fund keeps its maturity roughly constant. D × slope is the continuous-time roll for such a fund; the repo's formula applies to a single bond held for one year. |
 | Options on the equity index | Options on the **total-return** index (q = 0) | Keeps dividends inside the protected notional and avoids an unprotected dividend stream. The difference is a small dividend-yield effect on the strike. |
 | First tranches | Staggered first periods of 3, 6, 9 and 12 months | The only way to start a ladder at t = 0 without inventing past strike levels. |

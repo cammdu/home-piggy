@@ -34,14 +34,16 @@ class SaverProfile:
 
     horizon_years: int = 10
     initial_eur: float = 1000.0
-    monthly_contribution_eur: float = 250.0
-    gross_income_eur: float = 30000.0          # annual gross income at start (2026 euros)
+    monthly_contribution_eur: float = 550.0
+    gross_income_eur: float = 60000.0          # annual gross income at start (2026 euros)
     real_wage_growth: float = 0.01             # p.a. above CPI (career progression)
-    house_price_eur: float = 350000.0          # target home's price today (2026 euros)
+    house_price_eur: float = 400000.0          # target home's price today (2026 euros)
     student_debt_eur: float = 0.0
     student_rate: float = 0.0233               # DUO rate (user input; see docs/SOURCES.md)
     student_repay_start_month: int = 48        # months from start when DUO repayment begins
     student_term_months: int = 420             # SF35: 35-year repayment term
+    own_target_pct: float = 0.10               # optional own goal: this share of the price at purchase + buying
+                                               # costs; success = covering max(legal minimum, own goal). 0 = off
     buyer: BuyerProfile = field(default_factory=BuyerProfile)
 
     def validate(self) -> "SaverProfile":
@@ -52,6 +54,8 @@ class SaverProfile:
                 raise ValueError(f"{f} must be >= 0.")
         if self.house_price_eur <= 0:
             raise ValueError("house_price_eur must be > 0.")
+        if not (0.0 <= self.own_target_pct <= 1.0):
+            raise ValueError("own_target_pct must be between 0 and 1.")
         return self
 
 
@@ -80,7 +84,8 @@ class Results:
     portfolio: PortfolioResult
     benchmark: PortfolioResult
     afford: AffordabilityResult
-    required_path: np.ndarray       # (P, T+1) required deposit if buying at month t
+    required_path: np.ndarray       # (P, T+1) legal minimum own funds if buying at month t
+    target_path: np.ndarray         # (P, T+1) saver's goal: max(legal minimum, own_target_pct x price + costs)
     income: np.ndarray              # (P, T+1)
     price: np.ndarray               # (P, T+1)
     summary: dict[str, Any]
@@ -181,11 +186,14 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
 
     # ---- required deposit if buying at each month (needed for lock-in and the final gap)
     required = np.empty((P, T + 1))
+    target = np.empty((P, T + 1))
     for t in range(T + 1):
         a = affordability_gap(price[:, t], income[:, t], m.mortgage_rate[:, t], np.full(P, instal[t]),
                               s.buyer.age_at_start + t / 12.0, m.cpi[:, t], m.house_index[:, t],
                               s.buyer, policy, table)
         required[:, t] = a.required_deposit
+        costs = a.transfer_tax + a.nhg_premium + a.other_costs
+        target[:, t] = np.maximum(a.required_deposit, s.own_target_pct * price[:, t] + costs)
         if t == T:
             afford = a
 
@@ -208,7 +216,7 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
             raise ValueError("lock_weights must be 4 non-negative weights summing to 1.")
 
         def target_fn(t: int, value: np.ndarray, reg: np.ndarray) -> np.ndarray:
-            hit = (locked_at < 0) & (value >= gp.lock_multiple * required[:, t]) & (t > 0)
+            hit = (locked_at < 0) & (value >= gp.lock_multiple * target[:, t]) & (t > 0)
             locked_at[hit] = t
             return np.where((locked_at >= 0)[:, None], lw[None], W[t][None])
     else:
@@ -232,7 +240,7 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
                           s.initial_eur, contributions, box3, RebalancePolicy(transaction_cost=0.0),
                           ("other", "other", "other", "bank"))
 
-    res = Results(cfg, m, port, bench, afford, required, income, price, {})
+    res = Results(cfg, m, port, bench, afford, required, target, income, price, {})
     res.summary = summarise(res)
     return res
 
@@ -271,6 +279,7 @@ def summarise(r: Results) -> dict[str, Any]:
     V = port.value[:, -1]
     Vc = bench.value[:, -1]
     D = r.required_path[:, -1]
+    G = r.target_path[:, -1]
     cpi_T = m.cpi[:, -1]
 
     flows = -port.contributions.copy()
@@ -296,6 +305,10 @@ def summarise(r: Results) -> dict[str, Any]:
         "p_outpace_cash": M.prob(V > Vc).as_dict(),
         "p_keep_up_with_housing": M.prob(irr_a >= house_a).as_dict(),
         "p_all_three": M.prob((V >= D) & (V > Vc) & (irr_a >= house_a)).as_dict(),
+        "own_target_pct": r.config.saver.own_target_pct,
+        "p_reach_own_target": M.prob(V >= G).as_dict(),
+        "own_target": qdict(G),
+        "surplus_vs_own_target": qdict(V - G),
         "pot_nominal": qdict(V),
         "pot_real_2026eur": qdict(V / cpi_T),
         "required_deposit": qdict(D),

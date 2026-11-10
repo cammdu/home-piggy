@@ -166,3 +166,30 @@ def test_mc_error_shrinks_with_paths(mp):
         e = run(RunConfig(market=mp, n_paths=n)).summary["p_outpace_cash"]
         w.append(e["hi"] - e["lo"])
     assert w[1] < 0.6 * w[0]          # ~1/sqrt(n): expect about 0.5x
+
+
+# ----------------------------------------------------------------- own savings target
+def test_own_target_is_max_of_legal_and_own_goal(mp):
+    r = run(RunConfig(market=mp, n_paths=200))
+    assert np.all(r.target_path >= r.required_path - 1e-9)
+    off = run(RunConfig(market=mp, n_paths=200, saver=SaverProfile(own_target_pct=0.0)))
+    np.testing.assert_allclose(off.target_path, off.required_path)
+    s = r.summary
+    assert s["p_reach_own_target"]["value"] <= s["p_reach_deposit"]["value"]
+
+
+def test_own_target_binds_for_high_earner(mp):
+    """At EUR 150k income the legal minimum is just the buying costs; the 10% goal then sets the target."""
+    s = SaverProfile(gross_income_eur=150000, own_target_pct=0.10)
+    r = run(RunConfig(market=mp, n_paths=100, saver=s))
+    a = r.afford
+    costs = a.transfer_tax + a.nhg_premium + a.other_costs
+    legal_is_costs = np.isclose(r.required_path[:, -1], costs)
+    assert legal_is_costs.mean() > 0.9
+    np.testing.assert_allclose(r.target_path[legal_is_costs, -1],
+                               0.10 * r.price[legal_is_costs, -1] + costs[legal_is_costs], rtol=1e-12)
+
+
+def test_own_target_validation():
+    with pytest.raises(ValueError):
+        SaverProfile(own_target_pct=1.5).validate()
