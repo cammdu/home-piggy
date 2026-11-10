@@ -1,0 +1,203 @@
+{
+ "n_paths": 1000,
+ "saver": {
+  "horizon_years": 10,
+  "initial_eur": 1000.0,
+  "monthly_contribution_eur": 250.0,
+  "gross_income_eur": 30000.0,
+  "real_wage_growth": 0.01,
+  "house_price_eur": 350000.0,
+  "student_debt_eur": 0.0,
+  "student_rate": 0.0233,
+  "student_repay_start_month": 48,
+  "student_term_months": 420
+ },
+ "bands": {
+  "repo_classifier": {
+   "replicates": 200,
+   "p_reach_deposit": {
+    "median": 0.0375,
+    "p05": 0.0,
+    "p95": 0.201,
+    "mc_noise_ratio": 0.11825654832975688,
+    "drivers_spearman": {
+     "house_ar1": 0.7527510550031329,
+     "house_mu (10y occupancy avg)": -0.232455334762875,
+     "vrp_ratio": -0.10239193475209239,
+     "mortgage_theta (10y occupancy avg)": 0.05843915936155809,
+     "short_rate_theta (10y occupancy avg)": -0.030098259523842805,
+     "equity_mu (10y occupancy avg)": 0.02468042254365233,
+     "share of next 10y in Recession": -0.0036477046926674194
+    }
+   },
+   "p_outpace_cash": {
+    "median": 0.9005000000000001,
+    "p05": 0.64785,
+    "p95": 0.99,
+    "mc_noise_ratio": 0.10860503104246726,
+    "drivers_spearman": {
+     "equity_mu (10y occupancy avg)": 0.9820307055402923,
+     "mortgage_theta (10y occupancy avg)": -0.5890328612392951,
+     "share of next 10y in Recession": -0.5403891932812583,
+     "vrp_ratio": 0.43561561981793756,
+     "short_rate_theta (10y occupancy avg)": -0.2995170062861637,
+     "house_mu (10y occupancy avg)": 0.08738369093322117,
+     "house_ar1": 0.01336891677208041
+    }
+   },
+   "p_keep_up_with_housing": {
+    "median": 0.45,
+    "p05": 0.21495,
+    "p95": 0.7328999999999993,
+    "mc_noise_ratio": 0.1172896234100404,
+    "drivers_spearman": {
+     "house_mu (10y occupancy avg)": -0.7581290310643626,
+     "equity_mu (10y occupancy avg)": 0.4286963624850997,
+     "vrp_ratio": 0.411420132561815,
+     "short_rate_theta (10y occupancy avg)": 0.08958078480148637,
+     "mortgage_theta (10y occupancy avg)": 0.05093540202831425,
+     "share of next 10y in Recession": -0.016157182643370672,
+     "house_ar1": -0.0007995589675550434
+    }
+   },
+   "p_all_three": {
+    "median": 0.032,
+    "p05": 0.0,
+    "p95": 0.17014999999999997,
+    "mc_noise_ratio": 0.1296951526597572,
+    "drivers_spearman": {
+     "house_ar1": 0.7395294388217306,
+     "house_mu (10y occupancy avg)": -0.2245058389732187,
+     "equity_mu (10y occupancy avg)": 0.12257086360373244,
+     "short_rate_theta (10y occupancy avg)": -0.06891905717271375,
+     "share of next 10y in Recession": -0.06141919684577357,
+     "vrp_ratio": -0.04619703544472145,
+     "mortgage_theta (10y occupancy avg)": -0.011995267589039982
+    }
+   },
+   "pot_nominal.p50": {
+    "median": 43965.99855720499,
+    "p05": 39686.86686102779,
+    "p95": 48355.06353629099,
+    "mc_noise_ratio": 0.09401809279921775
+   },
+   "required_deposit.p50": {
+    "median": 315355.67649126775,
+    "p05": 218550.7947552154,
+    "p95": 420583.4041397064,
+    "mc_noise_ratio": 0.15963552260120314
+   },
+   "surplus.p05": {
+    "median": -782567.4337253799,
+    "p05": -1865550.5845343089,
+    "p95": -319502.3010884409,
+    "mc_noise_ratio": 0.0645615851706222
+   },
+   "surplus.p50": {
+    "median": -270729.47137494915,
+    "p05": -371499.6384977496,
+    "p95": -175670.64364213077,
+    "mc_noise_ratio": 0.16703011149755545
+   },
+   "max_drawdown_last_24m.p05": {
+    "median": -0.005888656951083168,
+    "p05": -0.01577547838231984,
+    "p95": -0.0017277349302046126,
+    "mc_noise_ratio": 0.10232957010569932
+   }
+  },
+  "hmm": {
+   "replicates": 200,
+   "p_reach_deposit": {
+    "median": 0.004,
+    "p05": 0.0,
+    "p95": 0.08509999999999997,
+    "mc_noise_ratio": 0.10203252804763603,
+    "drivers_spearman": {
+     "share of next 10y in Recession": 0.5546245420953273,
+     "house_ar1": 0.41159161712945636,
+     "short_rate_theta (10y occupancy avg)": -0.35170725663149704,
+     "equity_mu (10y occupancy avg)": -0.3036602816668377,
+     "house_mu (10y occupancy avg)": -0.224682653914596,
+     "vrp_ratio": -0.18132722385100472,
+     "mortgage_theta (10y occupancy avg)": 0.010612514379899178
+    }
+   },
+   "p_outpace_cash": {
+    "median": 0.8745,
+    "p05": 0.53205,
+    "p95": 0.999,
+    "mc_noise_ratio": 0.08723987110567301,
+    "drivers_spearman": {
+     "equity_mu (10y occupancy avg)": 0.9563826849130211,
+     "share of next 10y in Recession": -0.8109223703998795,
+     "vrp_ratio": 0.47317037423952923,
+     "mortgage_theta (10y occupancy avg)": -0.4095644428382721,
+     "house_mu (10y occupancy avg)": 0.2261970934058293,
+     "short_rate_theta (10y occupancy avg)": 0.19341303621613418,
+     "house_ar1": -0.017893668626278204
+    }
+   },
+   "p_keep_up_with_housing": {
+    "median": 0.507,
+    "p05": 0.1716,
+    "p95": 0.8610999999999996,
+    "mc_noise_ratio": 0.08632315412900739,
+    "drivers_spearman": {
+     "equity_mu (10y occupancy avg)": 0.5676547532667436,
+     "vrp_ratio": 0.48484643935316635,
+     "share of next 10y in Recession": -0.4133117925660846,
+     "house_mu (10y occupancy avg)": -0.3768731943353263,
+     "house_ar1": -0.18443257401851837,
+     "short_rate_theta (10y occupancy avg)": 0.1458556466694288,
+     "mortgage_theta (10y occupancy avg)": -0.06772150570058706
+    }
+   },
+   "p_all_three": {
+    "median": 0.002,
+    "p05": 0.0,
+    "p95": 0.05709999999999997,
+    "mc_noise_ratio": 0.11758606436727587,
+    "drivers_spearman": {
+     "house_ar1": 0.4520536653416443,
+     "share of next 10y in Recession": 0.41542464706266913,
+     "short_rate_theta (10y occupancy avg)": -0.33488290651967373,
+     "house_mu (10y occupancy avg)": -0.23931358094857286,
+     "equity_mu (10y occupancy avg)": -0.14022954746358313,
+     "mortgage_theta (10y occupancy avg)": -0.08381829338512363,
+     "vrp_ratio": -0.03681954233638383
+    }
+   },
+   "pot_nominal.p50": {
+    "median": 46715.986845025385,
+    "p05": 39565.34670517641,
+    "p95": 55534.64992135377,
+    "mc_noise_ratio": 0.06959532129378494
+   },
+   "required_deposit.p50": {
+    "median": 352475.0754095559,
+    "p05": 251083.92450599236,
+    "p95": 529022.2297037177,
+    "mc_noise_ratio": 0.07094832984733507
+   },
+   "surplus.p05": {
+    "median": -538326.9291958554,
+    "p05": -1069820.3800800473,
+    "p95": -337224.28789070906,
+    "mc_noise_ratio": 0.0647834304774204
+   },
+   "surplus.p50": {
+    "median": -305751.2277507186,
+    "p05": -478246.0249458136,
+    "p95": -205420.96976189973,
+    "mc_noise_ratio": 0.07325568123687982
+   },
+   "max_drawdown_last_24m.p05": {
+    "median": -0.004888235100201232,
+    "p05": -0.019620834628731543,
+    "p95": -0.000181997422067724,
+    "mc_noise_ratio": 0.08160929009459081
+   }
+  }
+ }
+}

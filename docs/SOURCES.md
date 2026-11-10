@@ -39,12 +39,14 @@ illustrative only. For reference, the DUO interest rate default of 2.33% (SF35,
 [Consumentenbond](https://www.consumentenbond.nl/hypotheek/studieschuld-hypotheek)
 (secondary).
 
-## Market parameters
+## Market data (step 2)
 
-**None are in the repository yet.** `params/synthetic_test.yaml` is
-explicitly marked synthetic and exists only to test the engine. The loader
-refuses any parameter file that is not marked synthetic and has no
-`provenance.sources`. Step 2 (calibration) will estimate them from cited
-series, for example ECB €STR/EONIA and yield curves, DNB mortgage rates, CBS
-house price index (PBK), Eurostat HICP, MSCI World EUR / Fama-French global
-factors, and VSTOXX. Each file will record its series IDs and retrieval dates.
+All 17 series (ECB, Eurostat, Deutsche Bundesbank, CBS, Kenneth French Data
+Library, FRED/Cboe, Cboe) are listed with provider, series key, URL, retrieval
+time and SHA-256 in [`calibration/output/manifest.json`](../calibration/output/manifest.json)
+and in [CALIBRATION.md](CALIBRATION.md). Each calibrated parameter file embeds
+the same list in `provenance.sources`. The ECB's fixed EONIA–€STR spread of
+8.5 bp is taken from the
+[ECB press release of 31 May 2019](https://www.ecb.europa.eu/press/pr/date/2019/html/ecb.pr190531~a3788de9f8.en.html).
+
+`params/synthetic_test.yaml` remains, clearly marked, for engine tests only.

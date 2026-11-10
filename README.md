@@ -20,20 +20,23 @@ For a saver and a glidepath, across thousands of simulated futures:
    on the same paths.
 3. **Keep up with housing?** P(money-weighted return ≥ house-price growth).
 
-Every probability and percentile is reported with its 95% Monte Carlo
-interval.
+Every probability and percentile is reported as a band across 200 bootstrap
+re-calibrations (parameter uncertainty), with its Monte Carlo error checked
+separately.
 
 ## Status
 
 | Step | Status |
 |---|---|
-| 1. Python core (this branch) | done: engine, NL rules, 84 tests |
-| 2. Calibration from cited data, plus the historical scenario library | next |
+| 1. Python core | done (PR #1): engine, NL rules |
+| 2. Calibration from cited data, two regime methods, 200-replicate bootstrap bands, historical scenarios | done (this branch) |
 | 3. Streamlit app (analysis) | planned |
 | 4. Browser app (pitch) | planned |
 
-Market parameters are **not calibrated yet**. `params/synthetic_test.yaml` is
-synthetic and only for tests. Don't use its outputs.
+Calibrated NL parameters live in `params/` (`nl_calibrated*.yaml`,
+`nl_bootstrap*.json`, `nl_scenarios.json`). Results must be read as **bands across the bootstrap
+replicates** (see `homepiggy/uncertainty.py`). Before using any number, read
+**[docs/LIMITATIONS.md](docs/LIMITATIONS.md)**.
 
 ## Layout
 
@@ -49,11 +52,15 @@ homepiggy/
   tax_nl.py            box 3 (2026)
   metrics.py           Wilson / order-statistic intervals, IRR, drawdown
   engine.py            run(), compare() on common random numbers
+  uncertainty.py       option-C bands across bootstrap parameter sets
   data/nl/             sourced 2026 policy data
 docs/METHODS.md        every method, equation, assumption and deviation
 docs/SOURCES.md        every data source and its verification level
+docs/CALIBRATION.md    estimates, validation, scenarios (generated from outputs)
+docs/LIMITATIONS.md    every known limitation, with its size where measurable
+calibration/           data download, regime labelling, estimation, bootstrap, validation
 tools/                 reproducible extraction of official tables
-params/                parameter files (synthetic test file only, for now)
+params/                calibrated NL parameters, bootstrap sets, scenarios; synthetic test file
 ```
 
 ## Quick start
@@ -63,15 +70,25 @@ python3.12 -m venv .venv && .venv/bin/pip install -e '.[dev]'
 .venv/bin/python -m pytest
 ```
 
+Recalibrate (downloads ~25 MB, about 10 minutes):
+
+```bash
+PYTHONPATH=. .venv/bin/python -m calibration.download
+PYTHONPATH=. .venv/bin/python -m calibration.calibrate --replicates 200
+PYTHONPATH=. .venv/bin/python -m calibration.band_default
+PYTHONPATH=. .venv/bin/python -m calibration.write_docs
+```
+
 ```python
-from homepiggy.config import load_market_params
-from homepiggy.engine import RunConfig, compare
+from homepiggy.engine import RunConfig
 from homepiggy.glidepath import GlidepathSpec
 
-mp = load_market_params("params/synthetic_test.yaml")   # synthetic: testing only
-res = compare(RunConfig(market=mp, n_paths=5000),
-              [GlidepathSpec(), GlidepathSpec(kind="time_warp", gamma=0.6, name="late de-risk")])
-print(res["step"].summary["p_reach_deposit"])
+from homepiggy.uncertainty import load_bootstrap, compare_band
+
+params, _ = load_bootstrap("params/nl_bootstrap.json")        # 200 re-calibrations (repo regime labels)
+band = compare_band(RunConfig(market=params[0]), [GlidepathSpec(),
+                    GlidepathSpec(kind="time_warp", gamma=0.6, name="late de-risk")], params, n_paths=1000)
+print(band["step"]["p_reach_deposit"])      # median and 5-95% band across re-calibrations
 ```
 
 ## Licence
