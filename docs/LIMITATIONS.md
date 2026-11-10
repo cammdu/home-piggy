@@ -75,6 +75,7 @@ Measured values below come from `calibration/output/report.json` (calibration of
 | E5 | **Incomes above €125,000 use the top table row** (assumption: the table ends there). | Low | Rarely relevant for first-time buyers. |
 | E6 | **NHG eligibility is tested on the loan, not total costs.** | Low | Simplification. |
 | E7 | **Single-buyer focus.** Couples (two incomes, partner allowance) are supported only through `single=False` and a combined income; the second-earner rules are not modelled in detail. | Medium | |
+| E8 | **The own savings target (default 10% of price + costs) is a chosen goal, not a rule.** It doesn't model the lower mortgage rates Dutch banks offer at lower loan-to-value, so the benefit of the buffer isn't priced in. | Low | Rate tiers by loan-to-value would need sourcing from bank rate sheets. |
 
 ## F. Uncertainty method (option C)
 

@@ -156,12 +156,15 @@ def main() -> None:
         for m, b in band["bands"].items():
             w(f"### {m}\n")
             w("| Outcome | median | 5–95% band across re-calibrations | MC noise ratio |\n|---|---|---|---|")
-            for k, lab_ in (("p_reach_deposit", "P(reach deposit)"), ("p_outpace_cash", "P(outpace cash)"),
+            for k, lab_ in (("p_reach_deposit", "P(reach legal minimum deposit)"),
+                            ("p_reach_own_target", f"P(reach own target: max(legal, {band['saver'].get('own_target_pct', 0):.0%} of price + costs))"),
+                            ("p_outpace_cash", "P(outpace cash)"),
                             ("p_keep_up_with_housing", "P(keep up with housing)"), ("p_all_three", "P(all three)")):
                 w(_band_row(lab_, b[k], pct))
             eur = lambda v: f"€{v:,.0f}"                                       # noqa: E731
             w(_band_row("Median pot at purchase", b["pot_nominal.p50"], eur))
-            w(_band_row("Median required deposit", b["required_deposit.p50"], eur))
+            w(_band_row("Median legal minimum deposit", b["required_deposit.p50"], eur))
+            w(_band_row("Median own target", b["own_target.p50"], eur))
             d = b["p_reach_deposit"]["drivers_spearman"]
             w("\nMain drivers of P(reach deposit) across re-calibrations (Spearman rank correlation): " +
               ", ".join(f"{k} {v:+.2f}" for k, v in list(d.items())[:4]) + ".\n")

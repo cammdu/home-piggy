@@ -207,6 +207,13 @@ mortgage:
    * NHG premium: 0.4% of the loan if the loan ≤ NHG limit (optional).
    * Other buyer costs: user input.
 
+**Optional own savings target (user setting, default 10%).** Besides the legal
+minimum D, the saver can set an own goal: G = max(D, X% × price at purchase +
+buying costs). It is reported as a separate outcome, P(pot ≥ G), and the
+lock-in glidepath locks when the pot reaches G. It matters most for high
+earners, where the legal minimum shrinks to the buying costs. X is the saver's
+choice, not a regulation.
+
 **Projection to the purchase date (assumption):** the 2026 rules are held
 constant in real terms.
 * Euro thresholds (income brackets, singles amount and threshold, energy

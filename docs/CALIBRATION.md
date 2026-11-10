@@ -146,7 +146,7 @@ The stored shocks are the part of each move *not* explained by the model's expec
 
 ## 6. Illustration: default saver and glidepath, as bands
 
-Saver: {'horizon_years': 10, 'initial_eur': 1000.0, 'monthly_contribution_eur': 550.0, 'gross_income_eur': 60000.0, 'real_wage_growth': 0.01, 'house_price_eur': 400000.0, 'student_debt_eur': 0.0, 'student_rate': 0.0233, 'student_repay_start_month': 48, 'student_term_months': 420}. Glidepath: the agreed step table. 1000 paths per replicate, identical random draws across replicates.
+Saver: {'horizon_years': 10, 'initial_eur': 1000.0, 'monthly_contribution_eur': 550.0, 'gross_income_eur': 60000.0, 'real_wage_growth': 0.01, 'house_price_eur': 400000.0, 'student_debt_eur': 0.0, 'student_rate': 0.0233, 'student_repay_start_month': 48, 'student_term_months': 420, 'own_target_pct': 0.1}. Glidepath: the agreed step table. 1000 paths per replicate, identical random draws across replicates.
 
 The MC noise ratio is within-replicate simulation noise divided by the band's half-width. Below 0.25, the band reflects parameter uncertainty rather than too few paths.
 
@@ -154,12 +154,14 @@ The MC noise ratio is within-replicate simulation noise divided by the band's ha
 
 | Outcome | median | 5–95% band across re-calibrations | MC noise ratio |
 |---|---|---|---|
-| P(reach deposit) | 29.6% | 4.9% – 47.8% | 0.13 |
+| P(reach legal minimum deposit) | 29.6% | 4.9% – 47.8% | 0.13 |
+| P(reach own target: max(legal, 10% of price + costs)) | 29.6% | 4.9% – 47.8% | 0.13 |
 | P(outpace cash) | 88.1% | 62.3% – 98.3% | 0.11 |
 | P(keep up with housing) | 42.0% | 17.1% – 69.3% | 0.12 |
 | P(all three) | 23.2% | 3.5% – 41.5% | 0.14 |
 | Median pot at purchase | €93,086 | €84,765 – €101,566 | 0.09 |
-| Median required deposit | €207,062 | €100,205 – €323,216 | 0.17 |
+| Median legal minimum deposit | €207,062 | €100,205 – €323,216 | 0.17 |
+| Median own target | €207,062 | €100,205 – €323,216 | 0.17 |
 
 Main drivers of P(reach deposit) across re-calibrations (Spearman rank correlation): house_mu (10y occupancy avg) -0.60, house_ar1 +0.48, share of next 10y in Recession +0.18, mortgage_theta (10y occupancy avg) +0.15.
 
@@ -167,12 +169,14 @@ Main drivers of P(reach deposit) across re-calibrations (Spearman rank correlati
 
 | Outcome | median | 5–95% band across re-calibrations | MC noise ratio |
 |---|---|---|---|
-| P(reach deposit) | 14.8% | 0.1% – 40.6% | 0.11 |
+| P(reach legal minimum deposit) | 14.8% | 0.1% – 40.6% | 0.11 |
+| P(reach own target: max(legal, 10% of price + costs)) | 14.8% | 0.1% – 40.6% | 0.11 |
 | P(outpace cash) | 85.6% | 50.1% – 99.7% | 0.09 |
 | P(keep up with housing) | 45.0% | 13.3% – 82.1% | 0.09 |
 | P(all three) | 8.7% | 0.0% – 30.9% | 0.11 |
 | Median pot at purchase | €98,495 | €84,436 – €114,910 | 0.07 |
-| Median required deposit | €250,610 | €133,828 – €451,293 | 0.08 |
+| Median legal minimum deposit | €250,610 | €133,828 – €451,293 | 0.08 |
+| Median own target | €250,610 | €133,828 – €451,293 | 0.08 |
 
 Main drivers of P(reach deposit) across re-calibrations (Spearman rank correlation): share of next 10y in Recession +0.59, house_mu (10y occupancy avg) -0.57, short_rate_theta (10y occupancy avg) -0.50, house_ar1 +0.35.
 

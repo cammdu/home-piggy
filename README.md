@@ -19,6 +19,8 @@ For a saver and a glidepath, across thousands of simulated futures:
 2. **Outpace cash?** P(pot > the same contributions in a savings account),
    on the same paths.
 3. **Keep up with housing?** P(money-weighted return ≥ house-price growth).
+4. **Own target (optional, default 10%)?** P(pot ≥ max(legal minimum, 10% of the
+   price + buying costs)): a buffer goal the saver sets, which matters most for higher earners.
 
 Every probability and percentile is reported as a band across 200 bootstrap
 re-calibrations (parameter uncertainty), with its Monte Carlo error checked

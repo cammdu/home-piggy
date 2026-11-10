@@ -28,8 +28,8 @@ from .config import MarketParams, market_params_from_dict
 from .engine import RunConfig, compare, run
 from .glidepath import GlidepathSpec
 
-PROB_KEYS = ("p_reach_deposit", "p_outpace_cash", "p_keep_up_with_housing", "p_all_three")
-QUANT_KEYS = (("pot_nominal", "p50"), ("required_deposit", "p50"), ("surplus", "p05"), ("surplus", "p50"),
+PROB_KEYS = ("p_reach_deposit", "p_reach_own_target", "p_outpace_cash", "p_keep_up_with_housing", "p_all_three")
+QUANT_KEYS = (("pot_nominal", "p50"), ("required_deposit", "p50"), ("own_target", "p50"), ("surplus", "p05"), ("surplus", "p50"),
               ("max_drawdown_last_24m", "p05"))
 
 

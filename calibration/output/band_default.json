@@ -10,12 +10,28 @@
   "student_debt_eur": 0.0,
   "student_rate": 0.0233,
   "student_repay_start_month": 48,
-  "student_term_months": 420
+  "student_term_months": 420,
+  "own_target_pct": 0.1
  },
  "bands": {
   "repo_classifier": {
    "replicates": 200,
    "p_reach_deposit": {
+    "median": 0.2965,
+    "p05": 0.04875000000000001,
+    "p95": 0.4782499999999999,
+    "mc_noise_ratio": 0.13141827675376794,
+    "drivers_spearman": {
+     "house_mu (10y occupancy avg)": -0.6033889458224235,
+     "house_ar1": 0.4824231905716616,
+     "share of next 10y in Recession": 0.1753320393060952,
+     "mortgage_theta (10y occupancy avg)": 0.1525415593117632,
+     "vrp_ratio": 0.028474224396262064,
+     "equity_mu (10y occupancy avg)": 0.02144342207062302,
+     "short_rate_theta (10y occupancy avg)": -0.021300915942836434
+    }
+   },
+   "p_reach_own_target": {
     "median": 0.2965,
     "p05": 0.04875000000000001,
     "p95": 0.4782499999999999,
@@ -87,6 +103,12 @@
     "p95": 323215.6434300239,
     "mc_noise_ratio": 0.1703492699971703
    },
+   "own_target.p50": {
+    "median": 207061.61780640704,
+    "p05": 100204.8914118951,
+    "p95": 323215.6434300239,
+    "mc_noise_ratio": 0.16989491656203357
+   },
    "surplus.p05": {
     "median": -692220.3852521318,
     "p05": -1909802.5102475006,
@@ -109,6 +131,21 @@
   "hmm": {
    "replicates": 200,
    "p_reach_deposit": {
+    "median": 0.1485,
+    "p05": 0.0009500000000000011,
+    "p95": 0.4058499999999997,
+    "mc_noise_ratio": 0.10885863571732161,
+    "drivers_spearman": {
+     "share of next 10y in Recession": 0.5902777145150115,
+     "house_mu (10y occupancy avg)": -0.5715197612844058,
+     "short_rate_theta (10y occupancy avg)": -0.49660496054624237,
+     "house_ar1": 0.3526342191420632,
+     "equity_mu (10y occupancy avg)": -0.32441853109521024,
+     "vrp_ratio": -0.10312298800397397,
+     "mortgage_theta (10y occupancy avg)": 0.03598274681616374
+    }
+   },
+   "p_reach_own_target": {
     "median": 0.1485,
     "p05": 0.0009500000000000011,
     "p95": 0.4058499999999997,
@@ -179,6 +216,12 @@
     "p05": 133827.7864162489,
     "p95": 451292.8736836412,
     "mc_noise_ratio": 0.07646198100909518
+   },
+   "own_target.p50": {
+    "median": 250610.40771302464,
+    "p05": 133827.7864162489,
+    "p95": 451292.8736836412,
+    "mc_noise_ratio": 0.07633442080163991
    },
    "surplus.p05": {
     "median": -423240.9245717039,
