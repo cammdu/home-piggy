@@ -1,0 +1,61 @@
+# =============================================================================
+# SYNTHETIC PARAMETERS FOR TESTING THE ENGINE ONLY.
+#
+# These numbers are NOT calibrated and NOT sourced. They exist so the code can
+# be exercised end to end before the calibration step (step 2) estimates real
+# parameters from cited data (ECB, DNB, CBS, MSCI/Fama-French, ...).
+# Do NOT use them for any decision, pitch or published figure.
+# =============================================================================
+provenance:
+  synthetic: true
+  description: "Hand-set round numbers for unit/integration tests. Not data."
+  sources: []
+
+market:
+  regimes: ["Expansion", "Late-cycle", "Recession", "Recovery"]
+  # monthly transition matrix, rows = from, cols = to
+  transition_matrix:
+    - [0.96, 0.03, 0.005, 0.005]
+    - [0.01, 0.94, 0.04, 0.01]
+    - [0.00, 0.00, 0.90, 0.10]
+    - [0.06, 0.00, 0.01, 0.93]
+  initial_regime: "Expansion"
+  equity:          # annual mean log return, annual vol
+    mu:    [0.08, 0.04, -0.15, 0.12]
+    sigma: [0.13, 0.17, 0.28, 0.20]
+  house:
+    mu:    [0.05, 0.03, -0.04, 0.02]
+    sigma: [0.03, 0.03, 0.04, 0.03]
+    ar1: 0.5
+  short_rate:
+    theta: [0.025, 0.035, 0.005, 0.010]
+    sigma: [0.004, 0.005, 0.008, 0.005]
+    half_life_months: 18
+    initial: 0.020
+  term_spread:
+    theta: [0.004, -0.002, 0.010, 0.012]
+    sigma: [0.004, 0.004, 0.006, 0.005]
+    half_life_months: 12
+    initial: 0.002
+  mortgage_rate:
+    theta: [0.038, 0.048, 0.030, 0.032]
+    sigma: [0.004, 0.005, 0.007, 0.005]
+    half_life_months: 24
+    initial: 0.037
+  inflation:
+    theta: [0.020, 0.035, 0.010, 0.015]
+    sigma: [0.006, 0.008, 0.010, 0.006]
+    half_life_months: 12
+    initial: 0.025
+  # order: equity, house, short_rate, term_spread, mortgage_rate, inflation
+  correlation:
+    - [ 1.00, 0.10,  0.05, -0.05,  0.00,  0.00]
+    - [ 0.10, 1.00,  0.00,  0.00, -0.20,  0.10]
+    - [ 0.05, 0.00,  1.00, -0.50,  0.60,  0.30]
+    - [-0.05, 0.00, -0.50,  1.00,  0.20,  0.00]
+    - [ 0.00,-0.20,  0.60,  0.20,  1.00,  0.20]
+    - [ 0.00, 0.10,  0.30,  0.00,  0.20,  1.00]
+  implied_vol:
+    vrp_ratio: 1.15
+    skew: 0.30
+    min_vol: 0.05
