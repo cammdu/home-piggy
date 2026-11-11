@@ -86,6 +86,15 @@ Measured values below come from `calibration/output/report.json` (calibration of
 | F3 | **200 replicates** give 5th/95th percentiles from about the 10th lowest/highest value. The band edges themselves carry sampling error of a few percentage points. | Low | Increase `--replicates` for publication. |
 | F4 | **Monte Carlo noise within each replicate** is checked via `mc_noise_ratio`. Above 0.25, increase `n_paths`. | Low | Reported per outcome. |
 
+## H. Streamlit app
+
+| # | Limitation | Severity | Notes |
+|---|---|---|---|
+| H1 | **Default runs use 50 of the 200 re-calibrations** (evenly spaced) and 500 paths, for speed (about 15–30 s per method). The 5th/95th band edges then rest on 2–3 replicates each, so they are noisier than in CALIBRATION.md. | Medium | Set re-calibrations to 200 and paths to 1,000+ before quoting numbers; the MC noise ratio warns when paths are too few. |
+| H2 | **Path charts (fan, allocation, at-purchase table) show one parameter set**: the median re-calibration by P(reach own target) of the first strategy. They aren't bands, and mixing paths across re-calibrations was rejected (option B). | Low | Labelled in the app. |
+| H3 | **Driver analysis uses rank correlations** between replicate parameters and outcomes. It is descriptive (parameters are correlated with each other), not causal. | Low | |
+| H4 | **"If you bought today" uses the latest observed mortgage rate** (ECB MIR, NL, fixed > 10 years) for every fixed period. Shorter fixed periods carry different rates, though the 5% test-rate floor still applies. | Low | |
+
 ## G. Engineering and reproducibility
 
 | # | Limitation | Severity | Notes |
