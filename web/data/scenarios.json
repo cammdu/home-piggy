@@ -1,0 +1,706 @@
+{
+ "provenance": {
+  "description": "Historical-replay episodes measured from the calibration data; windows found algorithmically; shocks = observed move minus the calibrated model's expected path.",
+  "calibrated_utc": "2026-11-10T10:48:47+00:00",
+  "sources": [
+   {
+    "name": "eonia",
+    "provider": "ECB Data Portal",
+    "key": "FM.M.U2.EUR.4F.MM.EONIA.HSTA",
+    "url": "https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.4F.MM.EONIA.HSTA?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:14:14+00:00",
+    "sha256": "1bf3914b3e53468eccb2618391f904b62e3daa3fa5394e51490a42288811eeb3"
+   },
+   {
+    "name": "estr",
+    "provider": "ECB Data Portal",
+    "key": "EST.B.EU000A2X2A25.WT",
+    "url": "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:14:17+00:00",
+    "sha256": "8114323599b3f2a09bb7a35f58fb32ae7078e9a8e268b2ff9724ade02e3201a7"
+   },
+   {
+    "name": "dfr",
+    "provider": "ECB Data Portal",
+    "key": "FM.D.U2.EUR.4F.KR.DFR.LEV",
+    "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:14:23+00:00",
+    "sha256": "f7c1f02a1053b42d405187b97b8b0625725a62e1613aecd74dfd48b68b402836"
+   },
+   {
+    "name": "hicp_nl_anr",
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=NL&coicop18=TOTAL&unit=RCH_A",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=NL&coicop18=TOTAL&unit=RCH_A",
+    "retrieved_utc": "2026-11-10T10:21:14+00:00",
+    "sha256": "f406c4cfdde2a0153e472eab372cbd977a57d53db9426ae2a9da2e261eafd3b5"
+   },
+   {
+    "name": "hicp_ea_anr",
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=EA&coicop18=TOTAL&unit=RCH_A",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=EA&coicop18=TOTAL&unit=RCH_A",
+    "retrieved_utc": "2026-11-10T10:21:17+00:00",
+    "sha256": "b76f4b009a2af801269c4000178299389c9b1e2a49dbcc2e031df87eafe41044"
+   },
+   {
+    "name": "hicp_ea_idx",
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=EA&coicop18=TOTAL&unit=I15",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=EA&coicop18=TOTAL&unit=I15",
+    "retrieved_utc": "2026-11-10T10:21:19+00:00",
+    "sha256": "5da9aa22faebdf0f2c0fe6e02797a7ba1ee64ee7fdcc59e27843be90954d52e1"
+   },
+   {
+    "name": "unemp_ea",
+    "provider": "ECB Data Portal",
+    "key": "LFSI.M.I9.S.UNEHRT.TOTAL0.15_74.T",
+    "url": "https://data-api.ecb.europa.eu/service/data/LFSI/M.I9.S.UNEHRT.TOTAL0.15_74.T?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:16:50+00:00",
+    "sha256": "84f2216ad0dc55fd7f4ee64a3561058c01376a3dda30dbd9f419bea4b8ac74f1"
+   },
+   {
+    "name": "gdp_ea",
+    "provider": "ECB Data Portal",
+    "key": "MNA.Q.Y.I9.W2.S1.S1.B.B1GQ._Z._Z._Z.EUR.LR.GY",
+    "url": "https://data-api.ecb.europa.eu/service/data/MNA/Q.Y.I9.W2.S1.S1.B.B1GQ._Z._Z._Z.EUR.LR.GY?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:16:52+00:00",
+    "sha256": "70542cf496cc72b25d568e4c119ca70813484293a90611b09b54318018e0b954"
+   },
+   {
+    "name": "ciss",
+    "provider": "ECB Data Portal",
+    "key": "CISS.D.U2.Z0Z.4F.EC.SS_CIN.IDX",
+    "url": "https://data-api.ecb.europa.eu/service/data/CISS/D.U2.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:17:36+00:00",
+    "sha256": "abaaef25d43b7658897b25dcd173c042cb29d866159263a3ef62353a13ea5071"
+   },
+   {
+    "name": "usd_per_eur",
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.USD.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.E?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:17:38+00:00",
+    "sha256": "dc98a9b6affd9589d0e6acfaf24b96456cb60f2fa7c2fbd652ab1a5fc1f71623"
+   },
+   {
+    "name": "mortgage_nl",
+    "provider": "ECB Data Portal",
+    "key": "MIR.M.NL.B.A2C.P.R.A.2250.EUR.N",
+    "url": "https://data-api.ecb.europa.eu/service/data/MIR/M.NL.B.A2C.P.R.A.2250.EUR.N?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:17:41+00:00",
+    "sha256": "503cd2131a0c9aaf30ec69da79de5aef02da6515bbb1f0c85391ac7434e66305"
+   },
+   {
+    "name": "y2_de",
+    "provider": "Deutsche Bundesbank",
+    "key": "BBSIS.M.I.ZST.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A",
+    "url": "https://api.statistiken.bundesbank.de/rest/data/BBSIS/M.I.ZST.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A?format=csv&lang=en",
+    "retrieved_utc": "2026-11-10T10:17:44+00:00",
+    "sha256": "28df21668cc2683bdbd6bc328108358d3368e9506ab37bee20c5b15d0301d902"
+   },
+   {
+    "name": "house_nl",
+    "provider": "CBS StatLine",
+    "key": "85773NED",
+    "url": "https://opendata.cbs.nl/ODataApi/odata/85773NED/TypedDataSet",
+    "retrieved_utc": "2026-11-10T10:17:46+00:00",
+    "sha256": "3220554e51a48889cfcb1c9a9a9b03740464157734eb531271051ccfb3129af7"
+   },
+   {
+    "name": "ff_dev",
+    "provider": "Kenneth R. French Data Library",
+    "key": "Developed_3_Factors",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip",
+    "retrieved_utc": "2026-11-10T10:17:49+00:00",
+    "sha256": "3f99cfdeddd1914e3d8f84ce51d775aeed3e98ed0c290957e88f4df9912f8a23"
+   },
+   {
+    "name": "ff_us_daily",
+    "provider": "Kenneth R. French Data Library",
+    "key": "F-F_Research_Data_Factors_daily",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip",
+    "retrieved_utc": "2026-11-10T10:17:53+00:00",
+    "sha256": "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89"
+   },
+   {
+    "name": "skew",
+    "provider": "Cboe",
+    "key": "SKEW",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+    "retrieved_utc": "2026-11-10T10:19:36+00:00",
+    "sha256": "6a70f2fd77d737f8b6be233bf10b81e61b35886816534b7deb0aacf9b347274c"
+   },
+   {
+    "name": "vix",
+    "provider": "FRED (St. Louis Fed), source Cboe",
+    "key": "VIXCLS",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+    "retrieved_utc": "2026-11-10T10:17:56+00:00",
+    "sha256": "049654ab9cad9c14a587c843bb0e771d6a1610aa25a32b14100037f95ad2c4ad"
+   },
+   {
+    "name": "eonia_estr_spread",
+    "provider": "ECB",
+    "url": "https://www.ecb.europa.eu/press/pr/date/2019/html/ecb.pr190531~a3788de9f8.en.html",
+    "value_bp": 8.5
+   }
+  ]
+ },
+ "events": {
+  "repo_classifier": [
+   {
+    "name": "gfc_2008",
+    "description": "Global financial crisis: equity peak-to-trough",
+    "window": [
+     "2007-05",
+     "2009-02"
+    ],
+    "duration_months": 21,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.6474604023006454,
+     "house_log": -0.025133733343852487,
+     "short_rate": -0.017887043324927628,
+     "term_spread": 0.004275710869045485,
+     "mortgage_rate": 0.009742066737686177,
+     "inflation": -0.0033427169478879555
+    },
+    "observed_change": {
+     "equity_log": -0.6566372875426674,
+     "house_log": 0.03131126168620641,
+     "short_rate": -0.025333545454545442,
+     "term_spread": -0.0048664545454545505,
+     "mortgage_rate": 0.006400000000000003,
+     "inflation": -0.0010000000000000009
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2007-01",
+      "2009-12"
+     ]
+    }
+   },
+   {
+    "name": "euro_crisis_2011",
+    "description": "Euro sovereign debt crisis: equity peak-to-trough",
+    "window": [
+     "2011-02",
+     "2011-09"
+    ],
+    "duration_months": 7,
+    "regime_path": [
+     "Expansion",
+     "Late-cycle",
+     "Expansion",
+     "Recession",
+     "Expansion",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.18616950379069905,
+     "house_log": -0.038741706440994075,
+     "short_rate": 0.0032011372879548945,
+     "term_spread": -0.010290425214979335,
+     "mortgage_rate": 0.0035665484249308385,
+     "inflation": 0.009470284450643173
+    },
+    "observed_change": {
+     "equity_log": -0.16704239090127093,
+     "house_log": -0.017139509876695727,
+     "short_rate": 0.002983545454545454,
+     "term_spread": -0.011883545454545456,
+     "mortgage_rate": 0.0021999999999999936,
+     "inflation": 0.008999999999999998
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2011-01",
+      "2012-12"
+     ]
+    }
+   },
+   {
+    "name": "covid_2020",
+    "description": "COVID-19 crash: equity peak-to-trough",
+    "window": [
+     "2020-01",
+     "2020-03"
+    ],
+    "duration_months": 2,
+    "regime_path": [
+     "Recovery",
+     "Expansion"
+    ],
+    "shocks": {
+     "equity_log": -0.24686165416518566,
+     "house_log": 0.005957413117651273,
+     "short_rate": -0.00029136319549363375,
+     "term_spread": -0.000667552105578671,
+     "mortgage_rate": -0.0010877186130860644,
+     "inflation": -0.006117524494765365
+    },
+    "observed_change": {
+     "equity_log": -0.22599450449420727,
+     "house_log": 0.011346176387301742,
+     "short_rate": 3.863636363636482e-05,
+     "term_spread": -0.0002386363636363636,
+     "mortgage_rate": -0.0010000000000000009,
+     "inflation": -0.006
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2020-01",
+      "2020-12"
+     ]
+    }
+   },
+   {
+    "name": "rate_shock_2022",
+    "description": "2022 rate shock: largest 12-month rise in NL mortgage rates",
+    "window": [
+     "2021-12",
+     "2022-12"
+    ],
+    "duration_months": 12,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle"
+    ],
+    "shocks": {
+     "equity_log": -0.1607699842119499,
+     "house_log": -0.006071474131579709,
+     "short_rate": 0.013970460367404425,
+     "term_spread": 0.01964463907342474,
+     "mortgage_rate": 0.008803776297731755,
+     "inflation": 0.07762025061987408
+    },
+    "observed_change": {
+     "equity_log": -0.13409712117370162,
+     "house_log": 0.022383028769132462,
+     "short_rate": 0.021455983436852996,
+     "term_spread": 0.011244016563147002,
+     "mortgage_rate": 0.0137,
+     "inflation": 0.046
+    },
+    "detection": {
+     "series": "mortgage_rate",
+     "rule": "max_rise_12m",
+     "search": [
+      "2021-01",
+      "2023-12"
+     ]
+    }
+   },
+   {
+    "name": "nl_housing_slump",
+    "description": "NL housing slump: house-price peak-to-trough",
+    "window": [
+     "2008-08",
+     "2013-06"
+    ],
+    "duration_months": 58,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recovery",
+     "Recession",
+     "Recession",
+     "Recovery",
+     "Recovery",
+     "Recession",
+     "Recession",
+     "Recovery",
+     "Recovery",
+     "Recession",
+     "Expansion",
+     "Recovery",
+     "Recession",
+     "Recession",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Expansion",
+     "Recession",
+     "Expansion",
+     "Recession",
+     "Recession",
+     "Late-cycle",
+     "Recession",
+     "Expansion",
+     "Recession",
+     "Expansion",
+     "Recession",
+     "Expansion",
+     "Recovery",
+     "Recession",
+     "Recession",
+     "Expansion",
+     "Recession",
+     "Expansion",
+     "Recovery",
+     "Expansion",
+     "Recovery",
+     "Recovery",
+     "Expansion",
+     "Recovery",
+     "Recovery",
+     "Recovery"
+    ],
+    "shocks": {
+     "equity_log": 0.05658796509210162,
+     "house_log": -0.3955812137288275,
+     "short_rate": -0.022781941915473627,
+     "term_spread": 0.004467952343998934,
+     "mortgage_rate": 0.012754441681009277,
+     "inflation": 0.06508278087987501
+    },
+    "observed_change": {
+     "equity_log": 0.32878757576172496,
+     "house_log": -0.23043398457688893,
+     "short_rate": -0.04212754761904763,
+     "term_spread": 0.002427547619047625,
+     "mortgage_rate": -0.005700000000000004,
+     "inflation": 0.0020000000000000018
+    },
+    "detection": {
+     "series": "house_index",
+     "rule": "drawdown",
+     "search": [
+      "2006-01",
+      "2015-12"
+     ]
+    }
+   }
+  ],
+  "hmm": [
+   {
+    "name": "gfc_2008",
+    "description": "Global financial crisis: equity peak-to-trough",
+    "window": [
+     "2007-05",
+     "2009-02"
+    ],
+    "duration_months": 21,
+    "regime_path": [
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.585896525874086,
+     "house_log": -2.242399746787277e-05,
+     "short_rate": -0.018463516521899606,
+     "term_spread": -6.606775979437663e-06,
+     "mortgage_rate": 0.006412511917533158,
+     "inflation": -0.023880408872693364
+    },
+    "observed_change": {
+     "equity_log": -0.6566372875426674,
+     "house_log": 0.03131126168620641,
+     "short_rate": -0.025333545454545442,
+     "term_spread": -0.0048664545454545505,
+     "mortgage_rate": 0.006400000000000003,
+     "inflation": -0.0010000000000000009
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2007-01",
+      "2009-12"
+     ]
+    }
+   },
+   {
+    "name": "euro_crisis_2011",
+    "description": "Euro sovereign debt crisis: equity peak-to-trough",
+    "window": [
+     "2011-02",
+     "2011-09"
+    ],
+    "duration_months": 7,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.1321060530022113,
+     "house_log": -0.02505951954019677,
+     "short_rate": 0.003672273755955325,
+     "term_spread": -0.01069785575237708,
+     "mortgage_rate": 0.002068392119153475,
+     "inflation": 0.0030801833353623887
+    },
+    "observed_change": {
+     "equity_log": -0.16704239090127093,
+     "house_log": -0.017139509876695727,
+     "short_rate": 0.002983545454545454,
+     "term_spread": -0.011883545454545456,
+     "mortgage_rate": 0.0021999999999999936,
+     "inflation": 0.008999999999999998
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2011-01",
+      "2012-12"
+     ]
+    }
+   },
+   {
+    "name": "covid_2020",
+    "description": "COVID-19 crash: equity peak-to-trough",
+    "window": [
+     "2020-01",
+     "2020-03"
+    ],
+    "duration_months": 2,
+    "regime_path": [
+     "Recovery",
+     "Expansion"
+    ],
+    "shocks": {
+     "equity_log": -0.24729502334129438,
+     "house_log": 0.004433542751384797,
+     "short_rate": -0.0001298567270905456,
+     "term_spread": -0.0005748118910228743,
+     "mortgage_rate": -0.0008602760847988561,
+     "inflation": -0.005864229284253803
+    },
+    "observed_change": {
+     "equity_log": -0.22599450449420727,
+     "house_log": 0.011346176387301742,
+     "short_rate": 3.863636363636482e-05,
+     "term_spread": -0.0002386363636363636,
+     "mortgage_rate": -0.0010000000000000009,
+     "inflation": -0.006
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2020-01",
+      "2020-12"
+     ]
+    }
+   },
+   {
+    "name": "rate_shock_2022",
+    "description": "2022 rate shock: largest 12-month rise in NL mortgage rates",
+    "window": [
+     "2021-12",
+     "2022-12"
+    ],
+    "duration_months": 12,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.07420625620388509,
+     "house_log": 0.008805869345987821,
+     "short_rate": 0.022003749495880458,
+     "term_spread": 0.014835447186637365,
+     "mortgage_rate": 0.00871700428817609,
+     "inflation": 0.08509800490386214
+    },
+    "observed_change": {
+     "equity_log": -0.13409712117370162,
+     "house_log": 0.022383028769132462,
+     "short_rate": 0.021455983436852996,
+     "term_spread": 0.011244016563147002,
+     "mortgage_rate": 0.0137,
+     "inflation": 0.046
+    },
+    "detection": {
+     "series": "mortgage_rate",
+     "rule": "max_rise_12m",
+     "search": [
+      "2021-01",
+      "2023-12"
+     ]
+    }
+   },
+   {
+    "name": "nl_housing_slump",
+    "description": "NL housing slump: house-price peak-to-trough",
+    "window": [
+     "2008-08",
+     "2013-06"
+    ],
+    "duration_months": 58,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Recovery",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recovery",
+     "Recovery",
+     "Recovery",
+     "Recovery",
+     "Recovery",
+     "Recovery",
+     "Recovery",
+     "Recovery",
+     "Recovery"
+    ],
+    "shocks": {
+     "equity_log": 0.32948577343080193,
+     "house_log": -0.3384219698816947,
+     "short_rate": -0.025823889225359584,
+     "term_spread": 0.0026087901050098105,
+     "mortgage_rate": 0.005350721677176907,
+     "inflation": 0.016149259778908878
+    },
+    "observed_change": {
+     "equity_log": 0.32878757576172496,
+     "house_log": -0.23043398457688893,
+     "short_rate": -0.04212754761904763,
+     "term_spread": 0.002427547619047625,
+     "mortgage_rate": -0.005700000000000004,
+     "inflation": 0.0020000000000000018
+    },
+    "detection": {
+     "series": "house_index",
+     "rule": "drawdown",
+     "search": [
+      "2006-01",
+      "2015-12"
+     ]
+    }
+   }
+  ]
+ }
+}

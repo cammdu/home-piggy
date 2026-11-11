@@ -102,3 +102,15 @@ Measured values below come from `calibration/output/report.json` (calibration of
 | G1 | **Raw data is not committed** (licences differ). Re-downloading later can return revised data; hashes in `manifest.json` reveal any change. | Low | |
 | G2 | **Corporate network blocks PyPI** on the development machine; packages had to be installed on another network. | Low | Environment issue, not model. |
 | G3 | **Editable install ignored on this Mac** (hidden `.pth` files); use `PYTHONPATH=.` or pytest's `pythonpath`. | Low | Environment issue. |
+
+## J. Glidepath optimisation and pitch app
+
+| # | Limitation | Severity | Size / evidence | Mitigation |
+|---|---|---|---|---|
+| J1 | **The income test is off by default** (user decision 2026-11-11). The headline measures whether the pot covers the deposit target (share of price + costs), not whether the buyer can borrow the rest. | High | With the income test on, success for the default saver is ~31% (repo) instead of ~89%. | Shown as measure 2 on the page and as a Streamlit switch. |
+| J2 | **The winner sits at the edge of the search grid** (latest handovers, largest blend). The optimum may lie outside it. | Medium | See STUDY_GLIDEPATH_OPT.md. | Extend the grid (handover at 3y/1y, blends of 50%). |
+| J3 | **The safety bar did not bind**: all 106 candidates beat the savings account on CVaR₁₀%, so growth decided. A stricter bar (e.g. "no worse than the original glidepath") would change the choice under HMM, where safety is equal. | Medium | HMM held-out safety 0.99 vs 0.99. | State the bar explicitly; test alternatives. |
+| J4 | **One saver profile was optimised.** Other incomes, prices or horizons may prefer a different schedule; the page recomputes outcomes for any inputs but always uses this glidepath. | Medium | Not measured. | Re-run `studies/optimize_glidepath.py` per profile. |
+| J5 | **The page uses 40 of 200 re-calibrations and 400 paths** for speed, so its ranges are noisier than the study's. | Low | Band edges rest on 2 re-calibrations each. | Numbers in the study use all 200. |
+| J6 | **NHG premium with the income test off** is computed on a 100%-of-value loan, overstating it by about 0.4% × the deposit share of the price. | Low | ≈ €200 on a €500k home. | Compute on price + costs − deposit. |
+| J7 | **The browser engine covers step glidepaths and the put-spread ladder without call overwrite** (the product default). Target-vol and lock-in glidepaths stay Python-only. | Low | | Parity tests guard the ported parts. |
