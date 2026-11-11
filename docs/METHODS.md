@@ -283,6 +283,45 @@ Every reported number carries its Monte Carlo uncertainty.
 | Narrative scenarios | Mechanism only in the core; the scenario library is built in step 2 | You asked for every number to be sourced. Shock sizes will be measured from historical series (ECB, DNB, CBS, index data) and stored with their sources, never typed in. |
 | Box 3 | Deemed-return system only | Tegenbewijs (taxing actual returns) needs the actual-return rules, which are not yet sourced. The model reports an upper bound on tax. |
 
+## 11. Glidepath optimisation (`glidepath_opt.py`, `studies/optimize_glidepath.py`)
+
+**Target (changed 2026-11-11, user decision).** By default the fund is judged against the **deposit target**:
+`own_target_pct` (default 10%) × house price at purchase + buying costs (transfer tax unless the starters'
+exemption applies, NHG premium, other costs). The Dutch income limit is a separate hurdle the fund cannot change,
+so it is off by default (`SaverProfile.apply_income_test = False`); switching it on restores the earlier target
+(own funds needed after borrowing the most the income test allows). With the income test off, the loan is limited
+only by loan-to-value, and the NHG premium is computed on that loan (100% of value), which overstates it by about
+0.4% × the deposit share of the price (≈ €200 on a €500k home).
+
+**Two feasibility measures.**
+1. *Sizeable deposit* (default): pot ≥ deposit target **and** pot > savings-account pot (same contributions,
+   short rate − 0.5%) **and** money-weighted return ≥ annualised house-price growth.
+2. *With the income limit*: pot ≥ own funds needed when the income test also applies.
+
+**Search space.** "Relay" glidepaths in the agreed order equity → protected equity → short bonds → cash. Equity
+hands over to protected equity at a ∈ {8, 7, 6, 5, 4} years before purchase, protected equity to short bonds at
+b ∈ {5, 4, 3, 2} (b < a), short bonds to cash at c ∈ {3, 2, 1, 0} (c < b; 0 = no cash phase). Each handoff is either a
+hard switch or keeps 25% in the previous sleeve. 106 candidates, plus the original agreed glidepath as reference.
+
+**Measures** (per re-calibration, 500 paths, common random numbers across candidates and the savings account).
+With the funded ratio F = pot / deposit target:
+* *growth* = median F;
+* *safety* = CVaR₁₀%(F), the mean of the worst 10% of F (lower-tail expected shortfall; a coherent risk measure,
+  Artzner et al. 1999; Rockafellar & Uryasev 2000). It measures how bad the bad outcomes are, not only where
+  they start, which a single percentile does not.
+
+**Selection rule (fixed before running).**
+1. Safety bar: the median over re-calibrations of the paired difference safety(candidate) − safety(savings
+   account) must be ≥ 0. The benchmark is the saver's real alternative, not a chosen number.
+2. Among candidates passing the bar under **both** regime methods, choose the highest median growth under the
+   repo classifier (primary).
+3. Decided on the even-numbered half of the 200 re-calibrations; verified on the odd-numbered half and in the five
+   historical crisis replays (ending at the purchase date) on 40 re-calibrations per method.
+
+**Browser engine (`web/engine.js`).** A line-by-line port of the Python engine. `tests/test_web_parity.py` replays
+numpy's random draws through it under node and requires agreement to a relative 1e-9 on market paths, pots,
+targets (with and without the income test) and money-weighted returns.
+
 ## References
 
 * Black, F. & Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. *JPE* 81(3).

@@ -130,8 +130,13 @@ def affordability_gap(
     buyer: BuyerProfile,
     policy: Mapping[str, Any],
     table: FinancingCostTable,
+    apply_income_test: bool = True,
 ) -> AffordabilityResult:
     """Vectorised affordability gap at a purchase date.
+
+    apply_income_test=False drops the income-based borrowing limit from the gap: the loan is limited
+    only by loan-to-value, so the gap is the buying costs alone. ``income_loan`` is still computed
+    and reported, so the income needed can be shown as a separate hurdle.
 
     cpi_factor / house_factor: simulated index level relative to the 2026 base
     (used to keep 2026 euro thresholds constant in real terms).
@@ -162,7 +167,8 @@ def affordability_gap(
         raise ValueError(f"Unknown energy label key '{buyer.energy_label}'; choose from {list(label_table)}.")
     loan = loan + label_table[buyer.energy_label] * cpi_factor
 
-    max_loan = np.minimum(loan, policy["loan_to_value"]["max_ltv"] * price)
+    ltv_loan = policy["loan_to_value"]["max_ltv"] * price
+    max_loan = np.minimum(loan, ltv_loan) if apply_income_test else ltv_loan * np.ones_like(loan)
 
     tt = policy["transfer_tax"]
     se = tt["starters_exemption"]

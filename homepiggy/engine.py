@@ -42,8 +42,12 @@ class SaverProfile:
     student_rate: float = 0.0233               # DUO rate (user input; see docs/SOURCES.md)
     student_repay_start_month: int = 48        # months from start when DUO repayment begins
     student_term_months: int = 420             # SF35: 35-year repayment term
-    own_target_pct: float = 0.10               # optional own goal: this share of the price at purchase + buying
-                                               # costs; success = covering max(legal minimum, own goal). 0 = off
+    own_target_pct: float = 0.10               # deposit goal: this share of the price at purchase + buying
+                                               # costs; success = covering max(gap, own goal). 0 = costs only
+    apply_income_test: bool = False            # True: the gap also includes the income-based borrowing limit
+                                               # (Dutch "financieringslast"). Off by default (user decision
+                                               # 2026-11-11): the income hurdle applies whatever the saver
+                                               # does, so the fund is judged on the deposit + costs only.
     buyer: BuyerProfile = field(default_factory=BuyerProfile)
 
     def validate(self) -> "SaverProfile":
@@ -84,8 +88,8 @@ class Results:
     portfolio: PortfolioResult
     benchmark: PortfolioResult
     afford: AffordabilityResult
-    required_path: np.ndarray       # (P, T+1) legal minimum own funds if buying at month t
-    target_path: np.ndarray         # (P, T+1) saver's goal: max(legal minimum, own_target_pct x price + costs)
+    required_path: np.ndarray       # (P, T+1) own funds required if buying at month t (costs; + income gap if tested)
+    target_path: np.ndarray         # (P, T+1) saver's goal: max(required, own_target_pct x price + costs)
     income: np.ndarray              # (P, T+1)
     price: np.ndarray               # (P, T+1)
     summary: dict[str, Any]
@@ -165,7 +169,8 @@ def _student_instalment(s: SaverProfile, T: int) -> np.ndarray:
 
 
 def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
-        sleeve_cov: np.ndarray | None = None) -> Results:
+        sleeve_cov: np.ndarray | None = None, summary: bool = True) -> Results:
+    """Simulate one glidepath. summary=False skips summarise() (IRR etc.) for large studies."""
     s = cfg.saver.validate()
     prod = cfg.product.validate()
     T = s.horizon_years * 12
@@ -190,7 +195,7 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
     for t in range(T + 1):
         a = affordability_gap(price[:, t], income[:, t], m.mortgage_rate[:, t], np.full(P, instal[t]),
                               s.buyer.age_at_start + t / 12.0, m.cpi[:, t], m.house_index[:, t],
-                              s.buyer, policy, table)
+                              s.buyer, policy, table, apply_income_test=s.apply_income_test)
         required[:, t] = a.required_deposit
         costs = a.transfer_tax + a.nhg_premium + a.other_costs
         target[:, t] = np.maximum(a.required_deposit, s.own_target_pct * price[:, t] + costs)
@@ -241,7 +246,8 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
                           ("other", "other", "other", "bank"))
 
     res = Results(cfg, m, port, bench, afford, required, target, income, price, {})
-    res.summary = summarise(res)
+    if summary:
+        res.summary = summarise(res)
     return res
 
 
