@@ -283,6 +283,41 @@ Every reported number carries its Monte Carlo uncertainty.
 | Narrative scenarios | Mechanism only in the core; the scenario library is built in step 2 | You asked for every number to be sourced. Shock sizes will be measured from historical series (ECB, DNB, CBS, index data) and stored with their sources, never typed in. |
 | Box 3 | Deemed-return system only | Tegenbewijs (taxing actual returns) needs the actual-return rules, which are not yet sourced. The model reports an upper bound on tax. |
 
+## 10. Study: when to convert to cash (`frontier.py`, `studies/cash_frontier.py`)
+
+**Question.** Which cash-conversion schedule gives the best trade-off between growth and safety?
+Answered by **grid search** (every candidate evaluated, nothing hidden inside an optimiser).
+
+**Candidates (264).** Everything before the conversion phase is today's glidepath. Three things vary:
+
+| Variable | Values | Today |
+|---|---|---|
+| Conversion starts (years before purchase) | 6, 5, 4, 3 | 4 |
+| Cash share from start to 2 years before | 0, 10, …, 100% | 50% |
+| Cash share in the last 2 years | 0, 10, …, 100%, never below the previous phase | 80% |
+
+The non-cash remainder keeps today's composition within each phase (proportional scaling): mid phase
+40% protected equity / 60% short bonds; last phase 100% short bonds. Today's glidepath is one grid point.
+
+**Measures** (per re-calibration, 500 paths, common random numbers across all candidates):
+* *growth* = P(pot ≥ own target at purchase);
+* *safety A* = 5th percentile of (pot − own target), EUR: the worst 1-in-20 outcome against the goal;
+* *safety B* = 5th percentile of (pot − bank-savings pot with the same contributions), EUR: the worst
+  1-in-20 regret against simply saving in a bank. Added after a pilot run showed safety A is dominated by
+  the target's own tail (house prices and mortgage rates), which no allocation can move much; safety B
+  isolates the risk the fund controls. Both are reported.
+
+**Frontier.** Medians across re-calibrations of growth and safety; a candidate is *dominated* if another is
+≥ on both and > on one (Pareto). The non-dominated set is the frontier. Choosing one point on it needs a
+stated preference (e.g. "highest growth with safety no worse than N months of saving"); the study itself
+makes no such choice.
+
+**Guarding against noise / overfitting.** The 200 bootstrap re-calibrations (option C) are split: even-numbered
+for selection, odd-numbered held out. Frontier membership, medians and paired differences against today's
+glidepath (median, 5–95% band, share of re-calibrations where the candidate is better) are reported on the
+held-out half, separately for both regime methods. The Jaccard overlap of the two halves' frontiers measures
+how stable the frontier is.
+
 ## References
 
 * Black, F. & Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. *JPE* 81(3).

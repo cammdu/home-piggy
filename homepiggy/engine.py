@@ -165,7 +165,8 @@ def _student_instalment(s: SaverProfile, T: int) -> np.ndarray:
 
 
 def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
-        sleeve_cov: np.ndarray | None = None) -> Results:
+        sleeve_cov: np.ndarray | None = None, summary: bool = True) -> Results:
+    """Simulate one glidepath. summary=False skips summarise() (IRR etc.) for large studies."""
     s = cfg.saver.validate()
     prod = cfg.product.validate()
     T = s.horizon_years * 12
@@ -241,7 +242,8 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
                           ("other", "other", "other", "bank"))
 
     res = Results(cfg, m, port, bench, afford, required, target, income, price, {})
-    res.summary = summarise(res)
+    if summary:
+        res.summary = summarise(res)
     return res
 
 

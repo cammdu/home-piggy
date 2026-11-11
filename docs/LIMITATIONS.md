@@ -102,3 +102,14 @@ Measured values below come from `calibration/output/report.json` (calibration of
 | G1 | **Raw data is not committed** (licences differ). Re-downloading later can return revised data; hashes in `manifest.json` reveal any change. | Low | |
 | G2 | **Corporate network blocks PyPI** on the development machine; packages had to be installed on another network. | Low | Environment issue, not model. |
 | G3 | **Editable install ignored on this Mac** (hidden `.pth` files); use `PYTHONPATH=.` or pytest's `pythonpath`. | Low | Environment issue. |
+
+## I. Cash-conversion frontier study
+
+| # | Limitation | Severity | Size / evidence | Mitigation |
+|---|---|---|---|---|
+| I1 | **Only the timing and size of the cash conversion vary.** The non-cash remainder keeps today's composition (mid phase 40% protected equity / 60% short bonds; last 2 years all short bonds), the last phase always starts 2 years before purchase, and the growth phases are fixed. A different remainder mix (e.g. protected equity instead of bonds) could move the frontier. | Medium | Not measured. | Follow-up study: remainder mix as an extra grid dimension. |
+| I2 | **One saver profile** (€60k income, €400k house, €550/month, 10 years). The best schedule may differ for savers who are far behind or ahead of their target. | Medium | Not measured (out of scope by choice). | Re-run `studies/cash_frontier.py` with another `SaverProfile`. |
+| I3 | **500 paths per re-calibration.** A 5th percentile from 500 paths rests on ~25 paths, so per-replicate bad-case values are noisy; medians over 100 re-calibrations and common random numbers reduce this. | Low | Frontier stability is reported as the Jaccard overlap of the two halves. | Raise `--paths`. |
+| I4 | **The frontier is chosen on medians across re-calibrations**, i.e. for the "typical" parameter set. A schedule that is best in the median can still lose in a minority of re-calibrations; the share of held-out re-calibrations where it beats today is reported for that reason. | Low | See tables. | Read the "better on both" column, not just the medians. |
+| I5 | **The safety measure against the own target is dominated by the target's tail.** In the worst 1-in-20 outcomes the required deposit rises (house prices, mortgage rates) far beyond what any allocation of the pot can cover, so this measure barely moves between schedules. | High | Pilot: about −€700k for all candidates, a range of ~€15k. | Second safety measure (bad case vs bank savings) added; both reported. |
+| I6 | **The frontier itself is unstable.** Frontier schedules differ between the selection and held-out halves (overlap 0.0–0.2), because the differences between schedules are within Monte Carlo and parameter noise. Only the direction of the start-year effect is robust. | Medium | See STUDY_CASH_FRONTIER.md, finding 4. | Don't rank individual schedules; more paths would sharpen but not change the size of the effects. |
