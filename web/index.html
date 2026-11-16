@@ -161,8 +161,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
       <div class="field"><label>Measure success by</label>
         <div class="seg" id="measure" role="group" aria-label="Success measure">
           <button type="button" data-v="reach" aria-pressed="true">Reach target</button>
-          <button type="button" data-v="deposit" aria-pressed="false">All three tests</button>
-          <button type="button" data-v="income" aria-pressed="false">With income limit</button></div></div>
+          <button type="button" data-v="deposit" aria-pressed="false">All three tests</button></div></div>
       <label class="switch" for="details"><input id="details" type="checkbox">
         <span><b>Show details</b><span class="muted small">Each test on its own, your deposit %, growth and safety.</span></span></label>
       <div class="field" id="deposit-field" hidden><label for="deposit">Deposit goal (% of the price) <output id="deposit-out"></output></label>
@@ -533,28 +532,23 @@ function drawCrisis(container, s, stat) {
 }
 
 // ------------------------------------------------------------------ render
-const statOf = () => ({ reach: "p_target", deposit: "p_all3", income: "p_income" })[state.measure];
+const statOf = () => ({ reach: "p_target", deposit: "p_all3" })[state.measure];
 function current() { return state.res[JSON.stringify([state.method, state.saver])]; }
 
 function render() {
   const r = current(); if (!r) return;
   const b = r.band, d = r.detail, stat = statOf(), s = state.saver;
   const regimeName = state.method === "hmm" ? "HMM regimes" : "indicator-classifier regimes";
-  $("measure-name").textContent = { reach: "Chance of reaching your deposit target", deposit: "Chance of a sizeable deposit",
-    income: "Chance of covering the deposit including the income limit" }[state.measure];
+  $("measure-name").textContent = { reach: "Chance of reaching your deposit target", deposit: "Chance of a sizeable deposit" }[state.measure];
   $("big").textContent = pct(b.opt[stat].median);
   const o = b.opt[stat], bank = b.bank[stat], eq = b.equity[stat];
   $("headline-text").textContent = state.measure === "reach"
     ? `With Home Piggy, ${pct(o.median)} of simulated futures end with at least a ${pct(s.own_target_pct)} deposit plus buying costs at purchase (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`
-    : state.measure === "income"
-    ? `With Home Piggy, ${pct(o.median)} of simulated futures end with enough savings to cover the gap between the price and what Dutch rules let you borrow on ${fmtEur(s.gross_income_eur)} income (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`
     : `With Home Piggy, ${pct(o.median)} of simulated futures reach a ${pct(s.own_target_pct)} deposit plus buying costs, beat a savings account and keep up with house prices, all three at once (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`;
   drawBand($("chart-band"), b, stat);
   const t = d.typical;
   $("measure-note").innerHTML = state.measure === "reach"
     ? `Typical deposit target at purchase: ${fmtEur(b.target_p50.median)} (${pct(s.own_target_pct)} of the price plus buying costs, rising with house prices). This is the measure that moves with the price and your monthly savings. Savings account: ${pct(bank.median)}; 100% equity: ${pct(eq.median)}, but with the worst bad years; see the stress test below.`
-    : state.measure === "income"
-    ? `Most of the gap comes from the income limit, not the fund: on ${fmtEur(t.income)} income at purchase you can borrow about ${fmtEur(t.income_loan)} for a ${fmtEur(t.price)} home. The fund can't change that, which is why this is not the default measure. Savings account: ${pct(bank.median)}; 100% equity: ${pct(eq.median)}.`
     : `Typical deposit target at purchase: ${fmtEur(b.target_p50.median)} (${pct(s.own_target_pct)} of the price plus buying costs). A savings account can't pass the "beat a savings account" test, so it isn't in this chart; it reaches the deposit target in ${pct(b.bank.p_target.median)} of futures (Home Piggy: ${pct(b.opt.p_target.median)}). 100% equity scores higher here but has the worst bad years; see the stress test below.<br><br><b>Why the price and your monthly savings barely move this number.</b> Two of the three tests compare returns, not amounts: saving twice as much doubles the pot but not its return. Once the deposit is reached, the share levels off near how often the fund beats savings and house prices. Saving more can even lower it slightly: above ${fmtEur(59357)} Dutch wealth tax (box 3) applies, on an assumed 6% return for investments but 1.28% for savings, so a bigger pot loses more of its edge. To see how the price and your savings change your odds, choose “Reach target”.`;
   renderDetails(b);
 
