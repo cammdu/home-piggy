@@ -298,6 +298,12 @@ only by loan-to-value, and the NHG premium is computed on that loan (100% of val
    short rate − 0.5%) **and** money-weighted return ≥ annualised house-price growth.
 2. *With the income limit*: pot ≥ own funds needed when the income test also applies.
 
+On the pitch page the default headline is a third view, *Reach target* (P(pot ≥ deposit target), measure 1's first
+test alone), because it is the only one that responds to the price and the monthly amount. The other two tests of
+measure 1 compare returns (bank pot and money-weighted return), which are invariant to the contribution scale, so
+P(all three) levels off once the target is near-certain; above the box 3 allowance it falls slightly as savings
+rise, because invested assets are taxed on a 6% deemed return vs 1.28% for bank deposits (2026 rules).
+
 **Search space.** "Relay" glidepaths in the agreed order equity → protected equity → short bonds → cash. Equity
 hands over to protected equity at a ∈ {8, 7, 6, 5, 4} years before purchase, protected equity to short bonds at
 b ∈ {5, 4, 3, 2} (b < a), short bonds to cash at c ∈ {3, 2, 1, 0} (c < b; 0 = no cash phase). Each handoff is either a
