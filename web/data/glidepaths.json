@@ -1,0 +1,52 @@
+{
+ "optimised": {
+  "label": "PE 4y | bonds 2y | no cash | blend 25%",
+  "table": [
+   {
+    "from_years": 10.0,
+    "to_years": 4.0,
+    "weights": [
+     1.0,
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "from_years": 4.0,
+    "to_years": 2.0,
+    "weights": [
+     0.25,
+     0.75,
+     0.0,
+     0.0
+    ]
+   },
+   {
+    "from_years": 2.0,
+    "to_years": 0.0,
+    "weights": [
+     0.0,
+     0.25,
+     0.75,
+     0.0
+    ]
+   }
+  ],
+  "summary": "Shares until 4 years before buying, buffered shares until 2, then short bonds, with no separate cash phase (each step keeps 25% in the previous sleeve).",
+  "how": [
+   "We tested 106 glidepaths that hand over from shares to buffered shares, short bonds and cash at different times, on the same simulated futures, across 200 re-calibrations under both regime methods.",
+   "Growth is the median pot divided by the deposit target. Safety is the average of that ratio in the worst 10% of futures (expected shortfall). The rule was fixed before running: a glidepath must be at least as safe as a savings account under both regime methods, and among those the highest growth wins. It was chosen on half of the re-calibrations and checked on the other half.",
+   "Checked on the held-out half (indicator-classifier regimes): growth 1.72 against 1.53 for the original glidepath; safety 0.83 against 0.70 for a savings account, at least as safe in 92% of re-calibrations. HMM regimes: growth 1.76 vs 1.54, safety 0.99 vs 0.91. In the crisis replays it stays at least as safe as a savings account in 10 of 10 cases.",
+   "Every one of the 106 glidepaths passed the safety bar, so growth decided. The winner sits at the edge of what we tested (the latest equity handover tested, the latest bond handover tested, the largest blend tested), so a later or softer handover might do better still; that was not tested."
+  ],
+  "params": {
+   "a": 4,
+   "b": 2,
+   "c": 0,
+   "blend": 0.25
+  }
+ },
+ "run_date": "2026-11-11",
+ "source": "studies/output/glidepath_opt.json"
+}

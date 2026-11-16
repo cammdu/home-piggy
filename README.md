@@ -118,3 +118,10 @@ print(band["step"]["p_reach_deposit"])      # median and 5-95% band across re-ca
 MIT. Some methods are adapted from
 [chloe_agentic_architecture_for_institutional_asset_management](https://github.com/cammdu/chloe_agentic_architecture_for_institutional_asset_management)
 (MIT).
+
+## Pitch app (browser)
+
+`web/` is a static page that runs the model in the browser (`web/engine.js`, a line-by-line port of the
+Python engine, checked by `tests/test_web_parity.py`). Data comes from `python tools/export_web_data.py`;
+default results from `node web/build_precomputed.mjs`. Preview locally with `python tools/serve_web.py 18766`.
+The glidepath it shows comes from `studies/optimize_glidepath.py` (see docs/STUDY_GLIDEPATH_OPT.md).
