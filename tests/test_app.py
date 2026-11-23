@@ -19,4 +19,4 @@ def test_app_runs_end_to_end(monkeypatch):
     at.run()
     assert not at.exception, at.exception
     assert len(at.tabs) == 6
-    assert any("P(reach own target)" in str(df.value.columns.tolist()) for df in at.dataframe)
+    assert any("P(reach deposit target)" in str(df.value.columns.tolist()) for df in at.dataframe)

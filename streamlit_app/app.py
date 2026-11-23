@@ -36,14 +36,14 @@ from streamlit_app.presets import (  # noqa: E402
 
 
 METRICS = {
-    "p_reach_own_target": ("P(reach own target)", ".0%"),
-    "p_reach_deposit": ("P(reach legal minimum)", ".0%"),
+    "p_reach_own_target": ("P(reach deposit target)", ".0%"),
+    "p_reach_deposit": ("P(cover required own funds)", ".0%"),
     "p_outpace_cash": ("P(outpace cash)", ".0%"),
     "p_keep_up_with_housing": ("P(keep up with house prices)", ".0%"),
-    "p_all_three": ("P(legal minimum + cash + housing)", ".0%"),
+    "p_all_three": ("P(required funds + cash + housing)", ".0%"),
     "pot_nominal.p50": ("Median pot at purchase", ",.0f"),
-    "required_deposit.p50": ("Median legal minimum deposit", ",.0f"),
-    "own_target.p50": ("Median own target", ",.0f"),
+    "required_deposit.p50": ("Median required own funds", ",.0f"),
+    "own_target.p50": ("Median deposit target", ",.0f"),
 }
 
 
@@ -93,7 +93,10 @@ def main() -> None:
         house = st.number_input("Target home's price today (€)", 50_000, 2_000_000, 400_000, step=10_000)
         monthly = st.number_input("Monthly contribution today (€)", 0, 10_000, 550, step=25)
         initial = st.number_input("Starting lump sum (€)", 0, 1_000_000, 1_000, step=500)
-        own_pct = st.slider("Own savings target (% of price + costs; 0 = legal minimum only)", 0, 30, 10) / 100
+        own_pct = st.slider("Deposit target (% of price, plus buying costs)", 0, 30, 10) / 100
+        income_test = st.toggle("Include the Dutch income limit in the target", value=False,
+                                help="Off (default): target = deposit % + buying costs. On: also covers the gap between "
+                                     "price + costs and the most you can borrow on your income (financieringslast).")
         single = st.toggle("Buying alone (singles allowance)", value=True)
         with st.expander("More buyer details"):
             fixed = st.selectbox("Mortgage fixed period", [10, 20, 30, 5], index=0,
@@ -127,7 +130,7 @@ def main() -> None:
 
     saver = {"horizon_years": int(horizon), "initial_eur": float(initial), "monthly_contribution_eur": float(monthly),
              "gross_income_eur": float(income), "real_wage_growth": float(wage), "house_price_eur": float(house),
-             "student_debt_eur": float(debt), "own_target_pct": float(own_pct)}
+             "student_debt_eur": float(debt), "own_target_pct": float(own_pct), "apply_income_test": bool(income_test)}
     buyer = {"age_at_start": float(age), "single": bool(single), "fixed_period_years": int(fixed), "use_nhg": bool(nhg),
              "other_costs_eur": float(other_costs)}
     product = {"buffer_lower_strike": 1.0 - lower / 100, "call_funding": float(funding)}
@@ -213,7 +216,7 @@ def main() -> None:
                 st.markdown(f"**Paired comparison vs '{res['band']['baseline']}'** ({method_names[suf]}): change in "
                             "success rate on identical paths, per re-calibration")
                 st.dataframe(pd.DataFrame([{
-                    "strategy": s, "kind": "own target" if k == "target" else "legal minimum",
+                    "strategy": s, "kind": "deposit target" if k == "target" else "required own funds",
                     "median change": f"{v['median']:+.1%}", "5–95% band": f"{v['p05']:+.1%} to {v['p95']:+.1%}",
                     "better in": f"{v['share_of_replicates_better']:.0%} of re-calibrations",
                     "worse in": f"{v['share_worse']:.0%}"} for s, d in pv.items() for k, v in d.items()]),
@@ -227,7 +230,7 @@ def main() -> None:
         strat = st.selectbox("Strategy", list(det), key="paths_s")
         real = st.toggle("Show pot in 2026 prices (inflation-adjusted)", value=False)
         st.caption("Median re-calibration only. Blue: pot, 5–95% and 25–75% of paths, median line. Orange: your target "
-                   "(max of legal minimum and own goal), median and 5–95% dashed.")
+                   "(deposit % + costs; plus the income-limit gap when that switch is on), median and 5–95% dashed.")
         st.altair_chart(charts.fan_chart(det, strat, real=real), width="stretch")
         st.markdown("**Average allocation over time**")
         st.altair_chart(charts.allocation_chart(det, strat), width="stretch")
@@ -256,7 +259,7 @@ def main() -> None:
         c[0].metric("Max mortgage", f"€{a.max_loan[0]:,.0f}", help="Lower of the income test and 100% of value")
         c[1].metric("Multiple of income", f"{a.max_loan[0] / max(income, 1):.2f}×")
         c[2].metric("Buying costs", f"€{(a.transfer_tax + a.nhg_premium + a.other_costs)[0]:,.0f}")
-        c[3].metric("Own money needed (legal minimum)", f"€{a.required_deposit[0]:,.0f}")
+        c[3].metric("Own money needed with the income limit", f"€{a.required_deposit[0]:,.0f}")
         st.caption(f"Test rate {a.test_rate[0]:.2%} · financing-cost share {a.flp[0]:.1%} of income "
                    "(Staatscourant 2025/36471) · singles allowance and student-debt gross-up applied as set.")
         suf = st.radio("Method", list(results), format_func=lambda s: method_names[s], horizontal=True, key="aff_m") \
@@ -267,7 +270,7 @@ def main() -> None:
         st.markdown("**At the purchase date** (median re-calibration; 5th / 50th / 95th percentile of paths)")
         names = {"price": "House price", "income": "Gross income", "mortgage_rate": "Mortgage rate", "test_rate": "Test rate",
                  "max_loan": "Max mortgage", "transfer_tax": "Transfer tax", "nhg": "NHG premium",
-                 "legal_min": "Legal minimum own funds", "own_target": "Your target", "pot": "Pot"}
+                 "legal_min": "Required own funds", "own_target": "Deposit target", "pot": "Pot"}
         st.dataframe(pd.DataFrame([{"item": names[k], **{q: (f"{ap[k][q]:.2%}" if "rate" in k else f"€{ap[k][q]:,.0f}")
                                                          for q in ("p05", "p50", "p95")}} for k in names]),
                      hide_index=True, width="stretch")
