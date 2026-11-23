@@ -6,8 +6,8 @@ Saver: €60k income, €400k house today, €550/month, 10 years, deposit targe
 
 ## Result
 
-**Chosen glidepath:** shares until 4 years before buying; then 75% buffered shares / 25% shares until 2 years;
-then 75% short bonds / 25% buffered shares until purchase. No separate cash phase.
+**Chosen glidepath:** shares until 4 years before buying; then 75% protected equity / 25% shares until 2 years;
+then 75% short bonds / 25% protected equity until purchase. No separate cash phase.
 
 Held-out half of the re-calibrations (not used for choosing):
 

@@ -1,4 +1,4 @@
-<title>Home Piggy</title>
+<title>FirstHome</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A glidepath savings fund for first-time home buyers in the Netherlands, simulated on euro-area data.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -126,7 +126,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
 </style>
 
 <header class="top"><div class="wrap">
-  <div class="brand"><span class="dots" aria-hidden="true"><i style="background:var(--red)"></i><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i></span>Home Piggy <span class="chip">NL · 2026 rules</span></div>
+  <div class="brand"><span class="dots" aria-hidden="true"><i style="background:var(--red)"></i><i style="background:var(--pink)"></i><i style="background:var(--yellow)"></i></span>FirstHome <span class="chip">NL · 2026 rules</span></div>
   <a class="small" href="https://github.com/cammdu/home-piggy" target="_blank" rel="noopener">Model and data on GitHub</a>
 </div></header>
 
@@ -134,7 +134,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
   <div class="copy">
     <div class="eyebrow">A savings fund for first-time buyers</div>
     <h1>Save for your first Dutch home in a fund that steps down its risk as buying day gets closer.</h1>
-    <p class="lede" id="hero-lede">You invest every month for 8 to 10 years. Early on the money grows in global shares. Then it moves step by step into buffered shares and safer assets, so a crash just before you buy takes less of your deposit with it.</p>
+    <p class="lede" id="hero-lede">You invest every month for 8 to 10 years. Early on the money grows in global equity. Then it moves step by step into protected equity and safer assets, so a crash just before you buy takes less of your deposit with it.</p>
     <p class="small muted" id="hero-note">Every number on this page is simulated from euro-area and Dutch data (1999–2026), repeated across 40 re-calibrations of the model so you see the uncertainty, not one lucky run.</p>
   </div>
   <figure class="gable" style="margin:0">
@@ -201,7 +201,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
   <p class="lede" id="gp-lede"></p>
   <div class="phases" id="phases"></div>
   <div class="two">
-    <div><h3>Home Piggy (optimised)</h3><div class="chart" id="chart-gp-opt"></div></div>
+    <div><h3>FirstHome (optimised)</h3><div class="chart" id="chart-gp-opt"></div></div>
     <div><h3>Original glidepath</h3><div class="chart" id="chart-gp-today"></div></div>
   </div>
   <div class="legend" id="gp-legend"></div>
@@ -212,7 +212,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
 </div></section>
 
 <section id="buffer"><div class="wrap">
-  <div><div class="eyebrow">Buffered shares</div><h2>The first 10% of a fall is absorbed</h2></div>
+  <div><div class="eyebrow">Protected equity</div><h2>The first 10% of a fall is absorbed</h2></div>
   <div class="two">
     <div style="display:grid;gap:14px">
       <p>In the middle years your shares are held with a buffer: alongside the index, the fund buys a put option at today's level and sells one 10% lower. If the market falls up to 10% over the year, the buffer pays for the fall. Below that, you take the losses beyond 10%.</p>
@@ -272,7 +272,7 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
 </div></section>
 
 <footer><div class="wrap" style="display:grid;gap:8px">
-  <p>Home Piggy is a model of a fund design, not a product you can buy, and not financial advice. Simulated outcomes are not promises: real markets can do things the history since 1999 never showed.</p>
+  <p>FirstHome is a model of a fund design, not a product you can buy, and not financial advice. Simulated outcomes are not promises: real markets can do things the history since 1999 never showed.</p>
   <p id="build-info"></p>
 </div></footer>
 
@@ -285,9 +285,9 @@ const ratio = (x) => Number.isFinite(x) ? x.toFixed(2) : "–";
 const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const SVGNS = "http://www.w3.org/2000/svg";
 const KEYS = ["opt", "today", "equity", "bank"];
-const NAMES = { opt: "Home Piggy (optimised)", today: "Original glidepath", equity: "100% global equity", bank: "Savings account" };
+const NAMES = { opt: "FirstHome (optimised)", today: "Original glidepath", equity: "100% global equity", bank: "Savings account" };
 const COLORS = { opt: "--s-opt", today: "--s-today", equity: "--s-equity", bank: "--s-bank" };
-const SLEEVES = ["Global shares", "Buffered shares", "Short bonds", "Cash"];
+const SLEEVES = ["Global equity", "Protected equity", "Short bonds", "Cash"];
 const EVENT_NAMES = { gfc_2008: "2008 crash", euro_crisis_2011: "Euro crisis", covid_2020: "Covid 2020",
   rate_shock_2022: "2022 rate shock", nl_housing_slump: "Dutch housing slump" };
 
@@ -456,7 +456,7 @@ function drawFan(container, fan) {
   hit.addEventListener("pointermove", (e) => {
     const yr = x.inv(e.offsetX), r = fan.reduce((a, b) => Math.abs(b.year - yr) < Math.abs(a.year - yr) ? b : a);
     cross.setAttribute("x1", x(r.year)); cross.setAttribute("x2", x(r.year)); cross.setAttribute("opacity", 0.6);
-    tip.show(`<b>Year ${r.year.toFixed(1)}</b><br>${sw("opt")} Home Piggy median ${fmtEur(r.v50)}<br>
+    tip.show(`<b>Year ${r.year.toFixed(1)}</b><br>${sw("opt")} FirstHome median ${fmtEur(r.v50)}<br>
       <span class="muted">middle half ${fmtK(r.v25)}–${fmtK(r.v75)} · 90% ${fmtK(r.v5)}–${fmtK(r.v95)}</span><br>
       ${sw("equity")} 100% equity median ${fmtEur(r.e50)}<br>${sw("bank")} Savings account ${fmtEur(r.b50)}<br>
       Deposit target ${fmtEur(r.g50)}`, e.offsetX, e.offsetY);
@@ -508,7 +508,7 @@ function drawBuffer(container, buf) {
   const hit = el("rect", { x: L, y: T, width: w - L - R, height: H - T - B, fill: "transparent" }, svg);
   hit.addEventListener("pointermove", (e) => {
     const xi = x.inv(e.offsetX), p = buf.pts.reduce((a, b) => Math.abs(b.index - xi) < Math.abs(a.index - xi) ? b : a);
-    tip.show(`<b>Index ${pct(p.index)}</b><br>${sw("equity")} Plain shares ${pct(p.index)}<br>${sw("opt")} Buffered shares ${pct(p.buffer, 1)}`, e.offsetX, e.offsetY);
+    tip.show(`<b>Index ${pct(p.index)}</b><br>${sw("equity")} Global equity ${pct(p.index)}<br>${sw("opt")} Protected equity ${pct(p.buffer, 1)}`, e.offsetX, e.offsetY);
   });
   hit.addEventListener("pointerleave", () => tip.hide());
 }
@@ -543,22 +543,22 @@ function render() {
   $("big").textContent = pct(b.opt[stat].median);
   const o = b.opt[stat], bank = b.bank[stat], eq = b.equity[stat];
   $("headline-text").textContent = state.measure === "reach"
-    ? `With Home Piggy, ${pct(o.median)} of simulated futures end with at least a ${pct(s.own_target_pct)} deposit plus buying costs at purchase (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`
-    : `With Home Piggy, ${pct(o.median)} of simulated futures reach a ${pct(s.own_target_pct)} deposit plus buying costs, beat a savings account and keep up with house prices, all three at once (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`;
+    ? `With FirstHome, ${pct(o.median)} of simulated futures end with at least a ${pct(s.own_target_pct)} deposit plus buying costs at purchase (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`
+    : `With FirstHome, ${pct(o.median)} of simulated futures reach a ${pct(s.own_target_pct)} deposit plus buying costs, beat a savings account and keep up with house prices, all three at once (range across re-calibrations ${pct(o.p05)}–${pct(o.p95)}; ${regimeName}).`;
   drawBand($("chart-band"), b, stat);
   const t = d.typical;
   $("measure-note").innerHTML = state.measure === "reach"
     ? `Typical deposit target at purchase: ${fmtEur(b.target_p50.median)} (${pct(s.own_target_pct)} of the price plus buying costs, rising with house prices). This is the measure that moves with the price and your monthly savings. Savings account: ${pct(bank.median)}; 100% equity: ${pct(eq.median)}, but with the worst bad years; see the stress test below.`
-    : `Typical deposit target at purchase: ${fmtEur(b.target_p50.median)} (${pct(s.own_target_pct)} of the price plus buying costs). A savings account can't pass the "beat a savings account" test, so it isn't in this chart; it reaches the deposit target in ${pct(b.bank.p_target.median)} of futures (Home Piggy: ${pct(b.opt.p_target.median)}). 100% equity scores higher here but has the worst bad years; see the stress test below.<br><br><b>Why the price and your monthly savings barely move this number.</b> Two of the three tests compare returns, not amounts: saving twice as much doubles the pot but not its return. Once the deposit is reached, the share levels off near how often the fund beats savings and house prices. Saving more can even lower it slightly: above ${fmtEur(59357)} Dutch wealth tax (box 3) applies, on an assumed 6% return for investments but 1.28% for savings, so a bigger pot loses more of its edge. To see how the price and your savings change your odds, choose “Reach target”.`;
+    : `Typical deposit target at purchase: ${fmtEur(b.target_p50.median)} (${pct(s.own_target_pct)} of the price plus buying costs). A savings account can't pass the "beat a savings account" test, so it isn't in this chart; it reaches the deposit target in ${pct(b.bank.p_target.median)} of futures (FirstHome: ${pct(b.opt.p_target.median)}). 100% equity scores higher here but has the worst bad years; see the stress test below.<br><br><b>Why the price and your monthly savings barely move this number.</b> Two of the three tests compare returns, not amounts: saving twice as much doubles the pot but not its return. Once the deposit is reached, the share levels off near how often the fund beats savings and house prices. Saving more can even lower it slightly: above ${fmtEur(59357)} Dutch wealth tax (box 3) applies, on an assumed 6% return for investments but 1.28% for savings, so a bigger pot loses more of its edge. To see how the price and your savings change your odds, choose “Reach target”.`;
   renderDetails(b);
 
   // fan
-  $("pot-sub").textContent = `Home Piggy pot for one typical re-calibration: the median line, the middle half of futures (dark band) and 90% of futures (light band), against the deposit target, which rises with house prices.`;
-  $("fan-legend").innerHTML = `<span><i style="background:var(--s-opt)"></i>Home Piggy median</span><span><i style="background:var(--fan-inner);height:10px"></i>middle 50%</span>
+  $("pot-sub").textContent = `FirstHome pot for one typical re-calibration: the median line, the middle half of futures (dark band) and 90% of futures (light band), against the deposit target, which rises with house prices.`;
+  $("fan-legend").innerHTML = `<span><i style="background:var(--s-opt)"></i>FirstHome median</span><span><i style="background:var(--fan-inner);height:10px"></i>middle 50%</span>
     <span><i style="background:var(--fan-outer);height:10px"></i>90% of futures</span><span><i style="background:var(--s-equity)"></i>100% equity median</span>
     <span><i style="background:var(--s-bank)"></i>Savings account median</span><span><i class="dash"></i>Deposit target</span>`;
   drawFan($("chart-fan"), d.fan);
-  $("fan-table").innerHTML = `<thead><tr><th>Year</th><th>Home Piggy 5%</th><th>median</th><th>95%</th><th>100% equity median</th><th>Savings median</th><th>Deposit target</th></tr></thead><tbody>` +
+  $("fan-table").innerHTML = `<thead><tr><th>Year</th><th>FirstHome 5%</th><th>median</th><th>95%</th><th>100% equity median</th><th>Savings median</th><th>Deposit target</th></tr></thead><tbody>` +
     d.fan.filter(r => r.t % 12 === 0).map(r => `<tr><td>${r.year}</td><td>${fmtEur(r.v5)}</td><td>${fmtEur(r.v50)}</td><td>${fmtEur(r.v95)}</td><td>${fmtEur(r.e50)}</td><td>${fmtEur(r.b50)}</td><td>${fmtEur(r.g50)}</td></tr>`).join("") + `</tbody>`;
 
   // glidepaths
@@ -570,7 +570,7 @@ function render() {
 
   // buffer
   const buf = d.buffer;
-  $("buffer-legend").innerHTML = `<span><i style="background:var(--s-equity)"></i>Plain shares</span><span><i style="background:var(--s-opt)"></i>Buffered shares</span>`;
+  $("buffer-legend").innerHTML = `<span><i style="background:var(--s-equity)"></i>Global equity</span><span><i style="background:var(--s-opt)"></i>Protected equity</span>`;
   drawBuffer($("chart-buffer"), buf);
   $("buffer-cost").textContent = `Cost of one year's buffer today: ${pct(buf.cost, 1)} of the amount protected (option spread ${pct(buf.spread, 1)} plus ${pct(0.002, 1)} trading cost), priced at ${pct(buf.atm, 1)} implied volatility in the ${d.regime_now} regime and a ${pct(buf.rate, 1)} interest rate.`;
 

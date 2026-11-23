@@ -84,13 +84,13 @@ def glidepaths_to_web() -> dict[str, Any]:
     n_pass = sum(1 for v in crisis.values() for e in v.values() if e["rows"][1]["safety_minus_bank_median"] >= 0)
     c = res["winner"]
     cash = f"cash for the last {c['c']} year{'s' if c['c'] != 1 else ''}" if c["c"] > 0 else "no separate cash phase"
-    summary = (f"Shares until {c['a']} years before buying, buffered shares until {c['b']}, then short bonds"
+    summary = (f"Global equity until {c['a']} years before buying, protected equity until {c['b']}, then short bonds"
                f"{'' if c['c'] == 0 else ' until ' + str(c['c'])}, with {cash}"
                + (f" (each step keeps {c['blend']:.0%} in the previous sleeve)" if c["blend"] else "") + ".")
     n_c = len(res["candidates"])
     R = res["setup"]["methods"]["repo"]["n_replicates"]
     how = [
-        f"We tested {n_c} glidepaths that hand over from shares to buffered shares, short bonds and cash at different "
+        f"We tested {n_c} glidepaths that hand over from global equity to protected equity, short bonds and cash at different "
         f"times, on the same simulated futures, across {R} re-calibrations under both regime methods.",
         "Growth is the median pot divided by the deposit target. Safety is the average of that ratio in the worst 10% of "
         "futures (expected shortfall). The rule was fixed before running: a glidepath must be at least as safe as a "

@@ -14,7 +14,7 @@ export const CONFIG = { nReps: 40, bandPaths: 400, detailPaths: 1000, stressPath
 
 export function strategies(optimisedTable) {
   return [
-    { key: "opt", label: "Home Piggy (optimised)", table: optimisedTable },
+    { key: "opt", label: "FirstHome (optimised)", table: optimisedTable },
     { key: "today", label: "Original glidepath", table: DEFAULT_TABLE },
     { key: "equity", label: "100% global equity", table: ALL_EQUITY },
   ];
