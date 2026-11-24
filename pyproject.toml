@@ -19,6 +19,8 @@ include = ["homepiggy*", "streamlit_app*"]
 
 [tool.setuptools.package-data]
 "homepiggy.data.nl" = ["*.yaml", "*.csv"]
+"homepiggy.data.uk" = ["*.yaml"]
+"homepiggy.data.de" = ["*.yaml"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

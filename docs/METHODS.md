@@ -328,6 +328,53 @@ With the funded ratio F = pot / deposit target:
 numpy's random draws through it under node and requires agreement to a relative 1e-9 on market paths, pots,
 targets (with and without the income test) and money-weighted returns.
 
+## 12. United Kingdom (England): data, rules and wrappers (`dataset_uk.py`, `affordability_uk.py`)
+
+**Same model, UK inputs.** The UK version reuses every model component unchanged: the regime classifier and
+HMM, the estimators, the stationary bootstrap (200 re-calibrations per regime method), the sleeves, the
+portfolio accounting, the outcome statistics and the glidepath optimisation rule of section 11. Only the
+data and the country rules differ. Calibration: `python -m calibration.calibrate --country uk`; details and
+diagnostics in [CALIBRATION_UK.md](CALIBRATION_UK.md).
+
+**Data.** SONIA (short rate), the 2-year nominal zero-coupon gilt yield (term spread), the Bank of England's
+quoted 5-year fixed mortgage rate at 75% LTV, ONS CPI inflation, global developed-market equity converted to
+pounds, and the UK HPI for England (HM Land Registry). Regime indicators: UK GDP y/y, unemployment change,
+CPI, Bank Rate and the UK CISS, with publication lags. England is used for house prices because the UK-wide
+index is quarterly before 2002 and because Stamp Duty Land Tax applies in England (and Northern Ireland).
+
+**Rules** (`homepiggy/data/uk/policy_2026.yaml`, every number with a GOV.UK/FCA source):
+- Loan limit: min(4.5 × income, 95% × price) with the income test on; 95% × price with it off (the default,
+  as for NL). 4.5× is the FPC's loan-to-income flow-limit threshold; most lending is below it.
+- Stamp Duty Land Tax: first-time buyer relief (0% to £300,000, 5% on £300,001–£500,000), lost entirely above
+  £500,000, when the standard bands apply to the whole price. Deposit target = deposit % × price + SDLT +
+  other costs (user input).
+- Pound thresholds are **not indexed**: SDLT bands, the £500,000 relief cap, and the Lifetime ISA's £4,000
+  limit and £450,000 threshold stay at today's nominal values, as statute sets them (the NL module indexes
+  its thresholds because Dutch law does).
+
+**Wrappers instead of tax.** The pot is held in ISAs, so no tax is charged; the page caps payments at
+£1,650 a month so a year stays within the £20,000 ISA allowance. The savings-account benchmark is a cash
+ISA (and cash Lifetime ISA when that switch is on) at the short rate − 0.5%, also untaxed.
+
+**Lifetime ISA** (switch, default on; `lisa_flows`, `lisa_charge`): each month min(payment, £4,000/12) goes
+into the Lifetime ISA and the rest into a Stocks and Shares ISA in the same fund. The 25% government bonus
+on the Lifetime ISA payment is credited one month later and invested like a payment; the bonus on the last
+month's payment arrives after purchase and is not counted. Both accounts hold the same pro-rata slice of
+every sleeve, so the Lifetime ISA's share of the pot changes only when money comes in:
+share_t = (share_{t−1} · V_t^− + LISA_t) / (V_t^− + c_t), where V_t^− is the pot before the month's inflow
+and c_t the total inflow. At purchase, if the price exceeds £450,000, a 20% withdrawal charge is taken from
+the Lifetime ISA value (GOV.UK, 2026). Money-weighted returns use the saver's own payments only, so the bonus
+counts as return. The savings account gets the same Lifetime ISA treatment, so comparisons stay like for like.
+A test checks the share accounting exactly against an independent accumulation in a cash-only fund.
+
+**Default UK saver.** The Dutch default converted at 0.8338 GBP per EUR (ECB, end October 2026) and rounded
+to the page's slider steps: £50,000 income, £335,000 home, £460 a month, £834 to start, age 20, 10 years.
+
+**Browser parity.** `web/engine.js` ports the UK rules line by line. `tests/test_web_parity.py` replays
+numpy's draws through both engines for four UK cases (Lifetime ISA on and off, income test, a saver too old
+to open a Lifetime ISA, prices on both sides of the £450,000 and £500,000 thresholds); they agree to
+rtol 1e-9. A mutation test (a 0.1% change in the charge) makes the test fail.
+
 ## References
 
 * Black, F. & Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. *JPE* 81(3).

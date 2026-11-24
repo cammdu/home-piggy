@@ -227,6 +227,124 @@ def _house_kalman(g: np.ndarray, lab: np.ndarray, vp: np.ndarray, k: int, start:
     return mu, phi, sig, se, eps, float(ll), bool(best.success), zz
 
 
+# --------------------------------------------------------------------------- quarterly house prices (Germany)
+def kalman_house_q(y: np.ndarray, lab: np.ndarray, segs: list, mu, phi: float, sig, se: float, want: bool = False):
+    """Kalman filter for monthly latent house growth observed only as quarterly index changes.
+
+    Monthly latent growth g_t = mu[s_t] + d_t, d_t = phi d_{t-1} + eps_t, eps_t ~ N(0, sig[s_t]^2): exactly the
+    model the engine simulates. The index is observed at quarter ends with level noise e_q ~ iid N(0, se^2), so
+    the observed quarterly log change at month t is
+        y_t = sum_{j=0..2} (mu[s_{t-j}] + d_{t-j}) + e_q - e_{q-1}          (temporal aggregation).
+    State a = (d_t, d_{t-1}, d_{t-2}, e_q, e_{q-1}). Months without an observation are prediction steps only.
+    An observation is used only if it is at least the third month of its run (so t-1, t-2 are true predecessors).
+    Returns log-likelihood and, if `want`, standardised innovations at observation months.
+    """
+    LOG2PI = 1.8378770664093453
+    ll = 0.0
+    se2 = se * se
+    z = np.full(len(y), np.nan) if want else None
+    Zv = np.array([1.0, 1.0, 1.0, 1.0, -1.0])
+    Tm = np.array([[phi, 0, 0, 0, 0], [1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1.0]])
+    Rm = np.array([[1, 0, 0, 0, 0], [0, 1, 0, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 1, 0.0]])
+    sig2 = [x * x for x in sig]
+    for sg in segs:
+        s0 = lab[sg[0]]
+        v0 = sig2[s0] / (1.0 - phi * phi)
+        a = np.zeros(5)
+        P = np.zeros((5, 5))
+        P[:3, :3] = v0 * np.array([[1, phi, phi * phi], [phi, 1, phi], [phi * phi, phi, 1]])
+        P[3, 3] = se2
+        for pos, t in enumerate(sg):
+            if pos > 0:   # predict one month
+                a = Tm @ a
+                P = Tm @ P @ Tm.T
+                P[0, 0] += sig2[lab[t]]
+            if pos >= 2 and y[t] == y[t]:
+                # new quarter-end level noise: e_{q-1} <- e_q, fresh e_q ~ N(0, se^2)
+                a = Rm @ a
+                P = Rm @ P @ Rm.T
+                P[3, 3] = se2
+                m = mu[lab[t]] + mu[lab[sg[pos - 1]]] + mu[lab[sg[pos - 2]]]
+                v = y[t] - m - Zv @ a
+                PZ = P @ Zv
+                F = float(Zv @ PZ)
+                if F <= 0.0:
+                    return -1e300, z
+                K = PZ / F
+                a = a + K * v
+                P = P - np.outer(K, PZ)
+                ll += -0.5 * (LOG2PI + np.log(F) + v * v / F)
+                if want:
+                    z[t] = v / np.sqrt(F)
+    return ll, z
+
+
+def _house_kalman_q(y: np.ndarray, lab: np.ndarray, vp: np.ndarray, k: int, start: dict | None = None):
+    """Exact Gaussian MLE of the monthly latent house-growth model from quarterly observations.
+
+    Same parameters, constraint and optimiser as `_house_kalman` (frequency-weighted mean of mu fixed at the
+    sample mean growth, here mean quarterly change / 3; phi = tanh, sigmas = exp; L-BFGS-B; three phi starts
+    for the full sample, warm start for bootstrap fits). Runs are maximal sequences of labelled, truly
+    consecutive months (`vp`); observations are rows where y is not NaN.
+    """
+    from scipy.optimize import minimize
+    lab_ok = lab >= 0
+    segs = [list(sg) for sg in _segments(vp, lab_ok) if len(sg) >= 3]
+    obs = [t for sg in segs for i, t in enumerate(sg) if i >= 2 and not np.isnan(y[t])]
+    if len(obs) < 8:
+        raise ValueError("Too few quarterly house-price observations.")
+    months_in = [t for sg in segs for t in sg]
+    present = np.array([np.any(lab[months_in] == r) for r in range(k)])
+    gbar = float(np.mean(y[obs])) / 3.0
+    freq = np.array([np.mean(lab[months_in] == r) for r in range(k)])
+
+    def mu_of(delta_free):
+        d = np.r_[0.0, delta_free]
+        return gbar + d - freq @ d
+
+    def unpack(th):
+        return (mu_of(th[: k - 1]), float(np.tanh(th[k - 1])), np.exp(th[k: 2 * k]), float(np.exp(th[2 * k])))
+
+    def obj(th):
+        mu, phi, sig, se = unpack(th)
+        return -kalman_house_q(y, lab, segs, mu, phi, sig, se)[0]
+
+    def pack(mu_start, phi_s, sig_s, se_s):
+        mu_start = np.nan_to_num(np.asarray(mu_start, float), nan=gbar)
+        d = mu_start - mu_start[0]
+        return np.r_[d[1:], np.arctanh(phi_s), np.log(sig_s), np.log(se_s)]
+
+    if start is not None:
+        starts = [pack(np.asarray(start["mu"]) / 12, start["phi"], np.asarray(start["sigma"]) / np.sqrt(12),
+                       start["sig_e"])]
+    else:
+        sdq = float(np.std(y[obs]))
+        starts = [pack(np.full(k, gbar), ph, np.full(k, sdq / 3), sdq / 3) for ph in (0.5, 0.8, 0.95)]
+    pidx = k - 1
+    bnds = [(None, None)] * (k - 1) + [(-np.arctanh(PHI_MAX), np.arctanh(PHI_MAX))] + [(None, None)] * (k + 1)
+    best = None
+    for th in starts:
+        th = np.where(np.isfinite(th), th, 0.0)
+        th[pidx] = np.clip(th[pidx], -np.arctanh(PHI_MAX), np.arctanh(PHI_MAX))
+        r = minimize(obj, th, method="L-BFGS-B", bounds=bnds, options={"maxiter": 3000})
+        if best is None or r.fun < best.fun:
+            best = r
+    mu, phi, sig, se = unpack(best.x)
+    ll, zz = kalman_house_q(y, lab, segs, mu, phi, sig, se, want=True)
+    mu = np.where(present, mu, np.nan); sig = np.where(present, sig, np.nan)
+    return mu, phi, sig, se, float(ll), bool(best.success), zz, len(obs)
+
+
+def _nearest_corr(C: np.ndarray, floor: float = 1e-6) -> np.ndarray:
+    """Eigenvalue clipping to the PSD cone, then rescaling to a unit diagonal."""
+    w, V = np.linalg.eigh((C + C.T) / 2)
+    C2 = (V * np.maximum(w, floor)) @ V.T
+    d = np.sqrt(np.diag(C2))
+    C2 = C2 / np.outer(d, d)
+    np.fill_diagonal(C2, 1.0)
+    return C2
+
+
 def _level_ar(y: np.ndarray, lab: np.ndarray, vp: np.ndarray, k: int):
     """Constrained least squares for y_t = (1-kappa) y_{t-1} + kappa theta[s_t] + e_t.
 
@@ -273,7 +391,10 @@ def _level_ar(y: np.ndarray, lab: np.ndarray, vp: np.ndarray, k: int):
 
 
 def estimate(rows: dict[str, np.ndarray], labels: np.ndarray, valid_prev: np.ndarray,
-             regimes: tuple[str, ...], fallback: dict[str, Any] | None = None) -> Estimates:
+             regimes: tuple[str, ...], fallback: dict[str, Any] | None = None,
+             house_freq: str = "M") -> Estimates:
+    """house_freq='Q': rows['house'] holds quarterly log changes at quarter-end months (NaN elsewhere); the
+    house block is estimated with `_house_kalman_q` and its correlations at quarterly frequency (see below)."""
     k = len(regimes)
     lab = labels.astype(int)
     est = Estimates(params={})
@@ -316,7 +437,12 @@ def estimate(rows: dict[str, np.ndarray], labels: np.ndarray, valid_prev: np.nda
     hs = None
     if fallback is not None and "_house_state_space" in fallback:
         hs = fallback["_house_state_space"]
-    h_mu, phi, h_sig, sig_e, h_res, h_ll, h_conv, h_z = _house_kalman(rows["house"], lab, valid_prev, k, start=hs)
+    if house_freq == "Q":
+        h_mu, phi, h_sig, sig_e, h_ll, h_conv, h_z, n_q = _house_kalman_q(rows["house"], lab, valid_prev, k, start=hs)
+        h_res = np.full(len(lab), np.nan)
+        diag["house_quarterly_observations"] = n_q
+    else:
+        h_mu, phi, h_sig, sig_e, h_res, h_ll, h_conv, h_z = _house_kalman(rows["house"], lab, valid_prev, k, start=hs)
     h_sd = [fb("house", "sigma", r, h_sig[r] * np.sqrt(12)) for r in range(k)]
     h_mu_a = [fb("house", "mu", r, h_mu[r] * 12) for r in range(k)]
     diag["house_state_space"] = {"phi": phi, "index_noise_sd_monthly": sig_e, "loglik": h_ll, "converged": h_conv,
@@ -342,6 +468,8 @@ def estimate(rows: dict[str, np.ndarray], labels: np.ndarray, valid_prev: np.nda
         resid[v] = res
 
     # ---- correlations: pooled (all regimes) shrunk to I; each regime shrunk to the pooled matrix
+    if house_freq == "Q":
+        return _finish_corr_quarterly_house(est, resid, h_z, lab, valid_prev, regimes, fallback, P)
     R = np.stack([resid[v] for v in ORDER], axis=1)
     cc = ~np.isnan(R).any(axis=1) & (lab >= 0)
     pooled, d_pool = ledoit_wolf_corr(R[cc])
@@ -359,6 +487,67 @@ def estimate(rows: dict[str, np.ndarray], labels: np.ndarray, valid_prev: np.nda
         else:
             raise ValueError(f"Too few complete-case months to estimate correlations in {name}.")
     for name in regimes:   # symmetrise exactly after rounding
+        Cm = np.asarray(corr[name]); Cm = (Cm + Cm.T) / 2; np.fill_diagonal(Cm, 1.0); corr[name] = Cm.tolist()
+    est.params["correlation"] = corr
+    diag["lw_shrinkage"] = shrink
+    diag["complete_case_months"] = n_cc
+    est.params["transition_matrix"] = P.tolist()
+    est.params["regimes"] = list(regimes)
+    return est
+
+
+def _finish_corr_quarterly_house(est: Estimates, resid: dict, h_z: np.ndarray, lab: np.ndarray, vp: np.ndarray,
+                                 regimes: tuple[str, ...], fallback: dict | None, P: np.ndarray) -> Estimates:
+    """Correlations when house prices are quarterly.
+
+    The five monthly variables use the same method as the monthly case (pooled Ledoit-Wolf to I, regimes
+    shrunk to pooled). House correlations are estimated at quarterly frequency: the standardised quarterly
+    house innovation against the 3-month sums of the other variables' monthly residuals (sums of iid monthly
+    shocks keep the monthly correlation). Too few quarters exist per regime, so the house row is pooled across
+    regimes (Ledoit-Wolf to I) and inserted into every regime's matrix, which is then projected to the nearest
+    correlation matrix (eigenvalue clipping).
+    """
+    k = len(regimes)
+    diag = est.diagnostics
+    others = [v for v in ORDER if v != "house"]
+    R5 = np.stack([resid[v] for v in others], axis=1)
+    cc = ~np.isnan(R5).any(axis=1) & (lab >= 0)
+    pooled5, d_pool = ledoit_wolf_corr(R5[cc])
+    # quarterly vectors: house innovation + 3-month residual sums of the others (true consecutive months only)
+    Q = []
+    for t in np.where(~np.isnan(h_z))[0]:
+        if t < 2 or not (vp[t] and vp[t - 1]):
+            continue
+        sums = R5[t - 2: t + 1].sum(axis=0)
+        if np.isnan(sums).any():
+            continue
+        Q.append(np.r_[sums[0], h_z[t], sums[1:]])
+    Q = np.asarray(Q)
+    pooled6, d_q = ledoit_wolf_corr(Q)
+    house_row = pooled6[1]                          # ORDER position of house is 1
+    corr, shrink, n_cc = {}, {"_pooled_to_identity": d_pool, "_house_quarterly_to_identity": d_q}, \
+        {"_pooled": int(cc.sum()), "_house_quarters": int(len(Q))}
+
+    def embed(C5: np.ndarray) -> list:
+        C = np.eye(6)
+        o = [0, 2, 3, 4, 5]
+        C[np.ix_(o, o)] = C5
+        C[1, :] = house_row; C[:, 1] = house_row; C[1, 1] = 1.0
+        return _nearest_corr(C).round(6).tolist()
+
+    for r, name in enumerate(regimes):
+        Z = R5[cc & (lab == r)]
+        n_cc[name] = int(len(Z))
+        if len(Z) >= MIN_REGIME_OBS and np.all(Z.std(axis=0) > 0):
+            Cm, dlt = ledoit_wolf_corr(Z, target=pooled5)
+            corr[name] = embed(Cm)
+            shrink[name] = dlt
+        elif fallback is not None:
+            corr[name] = fallback["correlation"][name]
+            est.fallbacks.append(f"correlation[{name}]")
+        else:
+            raise ValueError(f"Too few complete-case months to estimate correlations in {name}.")
+    for name in regimes:
         Cm = np.asarray(corr[name]); Cm = (Cm + Cm.T) / 2; np.fill_diagonal(Cm, 1.0); corr[name] = Cm.tolist()
     est.params["correlation"] = corr
     diag["lw_shrinkage"] = shrink

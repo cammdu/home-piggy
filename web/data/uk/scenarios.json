@@ -1,0 +1,578 @@
+{
+ "provenance": {
+  "description": "Historical-replay episodes measured from the calibration data; windows found algorithmically; shocks = observed move minus the calibrated model's expected path.",
+  "calibrated_utc": "2026-11-23T16:31:12+00:00",
+  "sources": [
+   {
+    "name": "boe_iadb",
+    "provider": "Bank of England Database",
+    "key": "IUMASOIA, IUDBEDR, IUMBV42",
+    "url": "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/1990&Dateto=now&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N&SeriesCodes=IUMASOIA,IUDBEDR,IUMBV42",
+    "retrieved_utc": "2026-11-23T16:30:29+00:00",
+    "sha256": "17a3eb9d22365884d14780021659f2081b6e3247cdfa0b891ecf4bbfb1fbd3f3"
+   },
+   {
+    "name": "gilt_curve",
+    "provider": "Bank of England (yield curves)",
+    "key": "GLC nominal month-end spot curve, 2-year",
+    "url": "https://www.bankofengland.co.uk/-/media/boe/files/statistics/yield-curves/glcnominalmonthedata.zip",
+    "retrieved_utc": "2026-11-23T16:30:29+00:00",
+    "sha256": "c45854fc77b749752572215cbb6385674d618461bf97bb4e6b476d9c3726a7f8"
+   },
+   {
+    "name": "gbp_per_eur",
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.GBP.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.GBP.EUR.SP00.E?format=csvdata",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "219399ffb162d4fecaa543d6bd0a3271e7c03a6ef01be7781ea65970d994ce17"
+   },
+   {
+    "name": "cpi_uk_anr",
+    "provider": "Office for National Statistics",
+    "key": "D7G7 (MM23)",
+    "url": "https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7g7/mm23/data",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "f7fef6130d7c366b8cae1715254c7c3113b2d6a496a2e89cc2313c3c3efc0520"
+   },
+   {
+    "name": "cpi_uk_idx",
+    "provider": "Office for National Statistics",
+    "key": "D7BT (MM23)",
+    "url": "https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7bt/mm23/data",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "b94a93c0ace504a2f355e116a2887df04476bcf4cf355dc66d1706b34544c0b4"
+   },
+   {
+    "name": "gdp_uk",
+    "provider": "Office for National Statistics",
+    "key": "IHYR (QNA)",
+    "url": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyr/qna/data",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "f27836f79c56c5e8f3291a7df344971086784b770dee09c17b38496e8b0eee72"
+   },
+   {
+    "name": "unemp_uk",
+    "provider": "Office for National Statistics",
+    "key": "MGSX (LMS)",
+    "url": "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms/data",
+    "retrieved_utc": "2026-11-23T16:26:55+00:00",
+    "sha256": "17dc5bae919c94f0cf44232766a9baecfef00db5ab9f58d1b4c52b62e14053ee"
+   },
+   {
+    "name": "ciss_uk",
+    "provider": "ECB Data Portal",
+    "key": "CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX",
+    "url": "https://data-api.ecb.europa.eu/service/data/CISS/D.GB.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata",
+    "retrieved_utc": "2026-11-23T16:27:19+00:00",
+    "sha256": "8ad335435e43d8caeab14fc259735cfb3fa4e43a9e33869c3ea1a7cde6eecd81"
+   },
+   {
+    "name": "house_eng",
+    "provider": "HM Land Registry (UK House Price Index)",
+    "key": "UKHPI England, all property types",
+    "url": "https://landregistry.data.gov.uk/app/ukhpi/download/new.csv?from=1995-01-01&to=2030-12-01&location=http%3A%2F%2Flandregistry.data.gov.uk%2Fid%2Fregion%2Fengland&thm%5B%5D=property_type&thm%5B%5D=buyer_status&in%5B%5D=hpi&in%5B%5D=avg",
+    "retrieved_utc": "2026-11-23T16:27:20+00:00",
+    "sha256": "ad0a27f47c467b9c3f3018349cc484dd47b2e71b13feddc2f76f8aa8a8367fbb"
+   },
+   {
+    "name": "usd_per_eur",
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.USD.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.E?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:17:38+00:00",
+    "sha256": "dc98a9b6affd9589d0e6acfaf24b96456cb60f2fa7c2fbd652ab1a5fc1f71623"
+   },
+   {
+    "name": "ff_dev",
+    "provider": "Kenneth R. French Data Library",
+    "key": "Developed_3_Factors",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip",
+    "retrieved_utc": "2026-11-10T10:17:49+00:00",
+    "sha256": "3f99cfdeddd1914e3d8f84ce51d775aeed3e98ed0c290957e88f4df9912f8a23"
+   },
+   {
+    "name": "ff_us_daily",
+    "provider": "Kenneth R. French Data Library",
+    "key": "F-F_Research_Data_Factors_daily",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip",
+    "retrieved_utc": "2026-11-10T10:17:53+00:00",
+    "sha256": "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89"
+   },
+   {
+    "name": "vix",
+    "provider": "FRED (St. Louis Fed), source Cboe",
+    "key": "VIXCLS",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+    "retrieved_utc": "2026-11-10T10:17:56+00:00",
+    "sha256": "049654ab9cad9c14a587c843bb0e771d6a1610aa25a32b14100037f95ad2c4ad"
+   },
+   {
+    "name": "skew",
+    "provider": "Cboe",
+    "key": "SKEW",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+    "retrieved_utc": "2026-11-10T10:19:36+00:00",
+    "sha256": "6a70f2fd77d737f8b6be233bf10b81e61b35886816534b7deb0aacf9b347274c"
+   }
+  ]
+ },
+ "events": {
+  "repo_classifier": [
+   {
+    "name": "gfc_2008",
+    "description": "Global financial crisis: equity peak-to-trough (sterling)",
+    "window": [
+     "2007-10",
+     "2009-02"
+    ],
+    "duration_months": 16,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.4093974287742669,
+     "house_log": -0.24377923801956786,
+     "short_rate": -0.043887289702471,
+     "term_spread": 0.013475341907606055,
+     "mortgage_rate": -0.010315769226016068,
+     "inflation": 0.0048632524467326615
+    },
+    "observed_change": {
+     "equity_log": -0.387551841979323,
+     "house_log": -0.18950123489597542,
+     "short_rate": -0.048778,
+     "term_spread": 0.011343404064784788,
+     "mortgage_rate": -0.012600000000000007,
+     "inflation": 0.011
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2007-01",
+      "2009-12"
+     ]
+    }
+   },
+   {
+    "name": "euro_crisis_2011",
+    "description": "Euro sovereign debt crisis: equity peak-to-trough (sterling)",
+    "window": [
+     "2011-06",
+     "2011-09"
+    ],
+    "duration_months": 3,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.16116770960342397,
+     "house_log": 0.003743218159088617,
+     "short_rate": 0.00045278264166503896,
+     "term_spread": -0.0016983589286254785,
+     "mortgage_rate": -0.009223103538234651,
+     "inflation": 0.010794053693503221
+    },
+    "observed_change": {
+     "equity_log": -0.16432547809708822,
+     "house_log": 0.010327114155849524,
+     "short_rate": 0.0001749999999999998,
+     "term_spread": -0.003635400369386351,
+     "mortgage_rate": -0.0092,
+     "inflation": 0.010000000000000002
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2011-01",
+      "2012-12"
+     ]
+    }
+   },
+   {
+    "name": "covid_2020",
+    "description": "COVID-19 crash: equity peak-to-trough (sterling)",
+    "window": [
+     "2020-01",
+     "2020-03"
+    ],
+    "duration_months": 2,
+    "regime_path": [
+     "Recovery",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.17615897138629838,
+     "house_log": -0.002101008896808241,
+     "short_rate": -0.0037506635582676036,
+     "term_spread": 0.00014096802798256984,
+     "mortgage_rate": -0.0009407028819703653,
+     "inflation": -0.0030411821540900414
+    },
+    "observed_change": {
+     "equity_log": -0.17427540234975003,
+     "house_log": 0.004872116823999929,
+     "short_rate": -0.003921000000000001,
+     "term_spread": 0.0007047284926236178,
+     "mortgage_rate": -0.0001999999999999988,
+     "inflation": -0.0030000000000000027
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2020-01",
+      "2020-12"
+     ]
+    }
+   },
+   {
+    "name": "rate_shock_2022",
+    "description": "2022 rate shock: largest 12-month rise in UK 5-year fixed mortgage rates",
+    "window": [
+     "2021-10",
+     "2022-10"
+    ],
+    "duration_months": 12,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.08890975188635585,
+     "house_log": 0.053939741548306094,
+     "short_rate": 0.015117237136155566,
+     "term_spread": 0.01848380874914321,
+     "mortgage_rate": 0.03964707136900628,
+     "inflation": 0.0800844037248524
+    },
+    "observed_change": {
+     "equity_log": -0.037029803302213025,
+     "house_log": 0.11029879729840882,
+     "short_rate": 0.021355000000000002,
+     "term_spread": 0.00550244963574415,
+     "mortgage_rate": 0.0431,
+     "inflation": 0.069
+    },
+    "detection": {
+     "series": "mortgage_rate",
+     "rule": "max_rise_12m",
+     "search": [
+      "2021-01",
+      "2023-12"
+     ]
+    }
+   },
+   {
+    "name": "uk_housing_slump",
+    "description": "England housing slump: house-price peak-to-trough",
+    "window": [
+     "2007-09",
+     "2009-03"
+    ],
+    "duration_months": 18,
+    "regime_path": [
+     "Recession",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.33036972456830904,
+     "house_log": -0.25951077862134286,
+     "short_rate": -0.04753672681700581,
+     "term_spread": 0.024106756348341554,
+     "mortgage_rate": -0.009889898871888892,
+     "inflation": 0.0027694381700042766
+    },
+    "observed_change": {
+     "equity_log": -0.3106293167691414,
+     "house_log": -0.20084351149990984,
+     "short_rate": -0.053022,
+     "term_spread": 0.015719543748642924,
+     "mortgage_rate": -0.012400000000000001,
+     "inflation": 0.010999999999999996
+    },
+    "detection": {
+     "series": "house_index",
+     "rule": "drawdown",
+     "search": [
+      "2006-01",
+      "2015-12"
+     ]
+    }
+   }
+  ],
+  "hmm": [
+   {
+    "name": "gfc_2008",
+    "description": "Global financial crisis: equity peak-to-trough (sterling)",
+    "window": [
+     "2007-10",
+     "2009-02"
+    ],
+    "duration_months": 16,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.3753293440044029,
+     "house_log": -0.19810574737163125,
+     "short_rate": -0.03219451812144449,
+     "term_spread": 0.0038617526002661254,
+     "mortgage_rate": -0.014138299031075512,
+     "inflation": -0.01381803265576027
+    },
+    "observed_change": {
+     "equity_log": -0.387551841979323,
+     "house_log": -0.18950123489597542,
+     "short_rate": -0.048778,
+     "term_spread": 0.011343404064784788,
+     "mortgage_rate": -0.012600000000000007,
+     "inflation": 0.011
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2007-01",
+      "2009-12"
+     ]
+    }
+   },
+   {
+    "name": "euro_crisis_2011",
+    "description": "Euro sovereign debt crisis: equity peak-to-trough (sterling)",
+    "window": [
+     "2011-06",
+     "2011-09"
+    ],
+    "duration_months": 3,
+    "regime_path": [
+     "Expansion",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.17394781730346273,
+     "house_log": 0.004895317207832034,
+     "short_rate": 0.0005283029119308817,
+     "term_spread": -0.0034024377592054497,
+     "mortgage_rate": -0.009400956793088432,
+     "inflation": 0.008873247191635326
+    },
+    "observed_change": {
+     "equity_log": -0.16432547809708822,
+     "house_log": 0.010327114155849524,
+     "short_rate": 0.0001749999999999998,
+     "term_spread": -0.003635400369386351,
+     "mortgage_rate": -0.0092,
+     "inflation": 0.010000000000000002
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2011-01",
+      "2012-12"
+     ]
+    }
+   },
+   {
+    "name": "covid_2020",
+    "description": "COVID-19 crash: equity peak-to-trough (sterling)",
+    "window": [
+     "2020-01",
+     "2020-03"
+    ],
+    "duration_months": 2,
+    "regime_path": [
+     "Recovery",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.1785818453359992,
+     "house_log": 0.00024740174431568673,
+     "short_rate": -0.004006136059207932,
+     "term_spread": -0.0007717889635128757,
+     "mortgage_rate": -0.0014017984690004725,
+     "inflation": -0.005328896214009642
+    },
+    "observed_change": {
+     "equity_log": -0.17427540234975003,
+     "house_log": 0.004872116823999929,
+     "short_rate": -0.003921000000000001,
+     "term_spread": 0.0007047284926236178,
+     "mortgage_rate": -0.0001999999999999988,
+     "inflation": -0.0030000000000000027
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2020-01",
+      "2020-12"
+     ]
+    }
+   },
+   {
+    "name": "rate_shock_2022",
+    "description": "2022 rate shock: largest 12-month rise in UK 5-year fixed mortgage rates",
+    "window": [
+     "2021-10",
+     "2022-10"
+    ],
+    "duration_months": 12,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.027862929821022897,
+     "house_log": 0.10384541294166694,
+     "short_rate": 0.02540050920979621,
+     "term_spread": 0.016889037317989145,
+     "mortgage_rate": 0.03559636615893786,
+     "inflation": 0.06494070487571738
+    },
+    "observed_change": {
+     "equity_log": -0.037029803302213025,
+     "house_log": 0.11029879729840882,
+     "short_rate": 0.021355000000000002,
+     "term_spread": 0.00550244963574415,
+     "mortgage_rate": 0.0431,
+     "inflation": 0.069
+    },
+    "detection": {
+     "series": "mortgage_rate",
+     "rule": "max_rise_12m",
+     "search": [
+      "2021-01",
+      "2023-12"
+     ]
+    }
+   },
+   {
+    "name": "uk_housing_slump",
+    "description": "England housing slump: house-price peak-to-trough",
+    "window": [
+     "2007-09",
+     "2009-03"
+    ],
+    "duration_months": 18,
+    "regime_path": [
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.2968790065473562,
+     "house_log": -0.21052358803502264,
+     "short_rate": -0.035604545244435785,
+     "term_spread": 0.013862417504506648,
+     "mortgage_rate": -0.014298947432228384,
+     "inflation": -0.018224152988177318
+    },
+    "observed_change": {
+     "equity_log": -0.3106293167691414,
+     "house_log": -0.20084351149990984,
+     "short_rate": -0.053022,
+     "term_spread": 0.015719543748642924,
+     "mortgage_rate": -0.012400000000000001,
+     "inflation": 0.010999999999999996
+    },
+    "detection": {
+     "series": "house_index",
+     "rule": "drawdown",
+     "search": [
+      "2006-01",
+      "2015-12"
+     ]
+    }
+   }
+  ]
+ }
+}

@@ -48,5 +48,69 @@
   }
  },
  "run_date": "2026-11-11",
- "source": "studies/output/glidepath_opt.json"
+ "source": "studies/output/glidepath_opt.json",
+ "heldout": {
+  "repo": {
+   "opt": {
+    "growth": 1.7240878895408929,
+    "safety": 0.827859279169042,
+    "p_target": 0.893,
+    "p_all3": 0.598,
+    "p_income_test": 0.307,
+    "share_safer_than_bank": 0.92,
+    "share_growth_above_today": 0.97
+   },
+   "today": {
+    "growth": 1.5331763513345635,
+    "safety": 0.7647808880800326,
+    "p_target": 0.843,
+    "p_all3": 0.422,
+    "p_income_test": 0.287,
+    "share_safer_than_bank": 0.97,
+    "share_growth_above_today": 0.0
+   },
+   "bank": {
+    "growth": 1.3657491405279867,
+    "safety": 0.6964505936409588,
+    "p_target": 0.771,
+    "p_all3": 0.0,
+    "p_income_test": 0.27,
+    "share_safer_than_bank": 1.0,
+    "share_growth_above_today": 0.01
+   }
+  },
+  "hmm": {
+   "opt": {
+    "growth": 1.7579441395978714,
+    "safety": 0.9876392244071517,
+    "p_target": 0.957,
+    "p_all3": 0.661,
+    "p_income_test": 0.166,
+    "share_safer_than_bank": 0.82,
+    "share_growth_above_today": 0.96
+   },
+   "today": {
+    "growth": 1.5396133676191992,
+    "safety": 0.9903328671288705,
+    "p_target": 0.954,
+    "p_all3": 0.454,
+    "p_income_test": 0.146,
+    "share_safer_than_bank": 0.88,
+    "share_growth_above_today": 0.0
+   },
+   "bank": {
+    "growth": 1.3317741398954634,
+    "safety": 0.9119037739173166,
+    "p_target": 0.907,
+    "p_all3": 0.0,
+    "p_income_test": 0.134,
+    "share_safer_than_bank": 1.0,
+    "share_growth_above_today": 0.04
+   }
+  }
+ },
+ "crisis_pass": [
+  10,
+  10
+ ]
 }

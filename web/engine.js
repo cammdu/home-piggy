@@ -6,7 +6,9 @@
 //
 // Scope of the port: step glidepaths (any table), baseline + historical-replay scenarios, the
 // put-spread ladder without call overwrite (call_funding = 0, the product default), NL 2026 rules,
-// box 3. Target-vol / lock-in glidepaths and the call overwrite stay Python-only.
+// box 3, UK (England) 2026 rules with ISA wrappers and the Lifetime ISA (affordability_uk.py), German 2026 rules
+// with fund taxation (affordability_de.py).
+// Target-vol / lock-in glidepaths and the call overwrite stay Python-only.
 
 export const SLEEVES = ["equity", "protected_equity", "short_bonds", "cash"];
 export const LEVEL_VARS = ["short_rate", "term_spread", "mortgage_rate", "inflation"];
@@ -32,8 +34,13 @@ export const DEFAULT_SAVER = {    // engine.SaverProfile + BuyerProfile defaults
   real_wage_growth: 0.01, house_price_eur: 400000, student_debt_eur: 0, student_rate: 0.0233,
   student_repay_start_month: 48, student_term_months: 420, own_target_pct: 0.10, apply_income_test: false,
   age_at_start: 20, single: true, first_time_buyer: true, owner_occupier: true, fixed_period_years: 10,
-  energy_label: "EFG", use_nhg: true, other_costs_eur: 0,
+  energy_label: "EFG", use_nhg: true, other_costs_eur: 0, lisa: true, region: "",
 };
+// engine.default_saver("de"): the Dutch default in euros; Land chosen on the page (default Bavaria)
+export const DE_DEFAULT_SAVER = { ...DEFAULT_SAVER, region: "BY" };
+// engine.UK_DEFAULT_SAVER: the NL default in pounds (0.8338 GBP per EUR, ECB end Oct 2026), rounded to slider steps
+export const UK_DEFAULT_SAVER = { ...DEFAULT_SAVER, initial_eur: 834, monthly_contribution_eur: 460,
+  gross_income_eur: 50000, house_price_eur: 335000 };
 
 // ----------------------------------------------------------------------------- special functions
 // Normal CDF via erf/erfc: Taylor series of erf for |x| < 2 (alternating terms, abs. error < 1e-15),
@@ -312,9 +319,21 @@ function box3Tax(bank, other, b3) {
 }
 
 // ----------------------------------------------------------------------------- portfolio (portfolio.py)
-function runPortfolio(rets, pe, W, nP, T, initial, contrib, b3, reb, bankMask, keepPath) {
+function exemption(ft, w) {                       // affordability_de.FundTax.exemption
+  const eq = w[0] + w[1];
+  return eq >= ft.th_equity - 1e-12 ? ft.tf_equity : (eq >= ft.th_mixed - 1e-12 ? ft.tf_mixed : 0);
+}
+const taxOn = (ft, x) => ft.rate * Math.max(x - ft.allowance, 0);
+function runPortfolio(rets, pe, W, nP, T, initial, contrib, b3, reb, bankMask, keepPath, tracked = null, ft = null) {
   const K = 4, PE = 1, T1 = T + 1;
   let cur = new Float64Array(nP * K);
+  const share = new Float64Array(nP);              // portfolio.run_portfolio(tracked=...)
+  let fs = null;                                   // German fund tax state (portfolio.run_portfolio(fund_tax=...))
+  if (ft) {
+    const tf0 = exemption(ft, W[0]);
+    fs = { vStart: new Float64Array(nP).fill(initial), basis: new Float64Array(nP).fill(initial), vpCum: new Float64Array(nP),
+           seg: new Float64Array(nP), cYear: new Float64Array(nP), baseW: new Float64Array(nP), tf: new Float64Array(nP).fill(tf0) };
+  }
   const value = keepPath ? new Float64Array(nP * T1) : null, finalV = new Float64Array(nP);
   const peVal = new Float64Array(nP), w0 = W[0];
   for (let i = 0; i < nP; i++) {
@@ -339,8 +358,34 @@ function runPortfolio(rets, pe, W, nP, T, initial, contrib, b3, reb, bankMask, k
         total = cur[o] + cur[o + 1] + cur[o + 2] + cur[o + 3];
       }
       const c = contrib[i * T1 + t];
+      if (ft) {
+        if (ft.mode === "fund") {
+          const tfNew = exemption(ft, wt);
+          if (tfNew !== fs.tf[i]) {                  // deemed sale on a category change (§ 22 InvStG)
+            fs.seg[i] = fs.seg[i] + (total - fs.basis[i] - fs.vpCum[i]) * (1 - fs.tf[i]);
+            fs.basis[i] = total; fs.vpCum[i] = 0; fs.tf[i] = tfNew;
+          }
+        }
+        const mIn = (t - 1) % 12 + 1;
+        fs.basis[i] = fs.basis[i] + c; fs.cYear[i] = fs.cYear[i] + c; fs.baseW[i] = fs.baseW[i] + c * (13 - mIn) / 12;
+      }
+      if (tracked) { const den = total + c; if (den > 0) share[i] = (share[i] * total + tracked[i * T1 + t]) / den; }
       for (let k = 0; k < K; k++) cur[o + k] += c * wt[k];
       total = cur[o] + cur[o + 1] + cur[o + 2] + cur[o + 3];
+      if (ft && t % 12 === 0 && (ft.mode === "interest" || t < T)) {
+        const gain = total - fs.vStart[i] - fs.cYear[i];
+        let due;
+        if (ft.mode === "fund") {
+          const vp = Math.min(ft.factor * ft.base_rate * (fs.vStart[i] + fs.baseW[i]), Math.max(gain, 0));
+          due = taxOn(ft, vp * (1 - fs.tf[i]));
+          fs.vpCum[i] = fs.vpCum[i] + vp;
+        } else due = taxOn(ft, gain);
+        due = Math.min(due, total);
+        const frac = total > 0 ? due / total : 0;
+        for (let k = 0; k < K; k++) cur[o + k] *= (1 - frac);
+        fs.basis[i] *= (1 - frac); fs.vpCum[i] *= (1 - frac); fs.seg[i] *= (1 - frac);
+        total = cur[o] + cur[o + 1] + cur[o + 2] + cur[o + 3];
+      }
       let drift = 0;
       for (let k = 0; k < K; k++) { const wc = total > 0 ? cur[o + k] / total : wt[k]; drift += Math.abs(wc - wt[k]); }
       if (t % reb.every_months === 0 || drift > reb.drift_threshold_l1) {
@@ -353,9 +398,10 @@ function runPortfolio(rets, pe, W, nP, T, initial, contrib, b3, reb, bankMask, k
       const v = cur[o] + cur[o + 1] + cur[o + 2] + cur[o + 3];
       if (value) value[i * T1 + t] = v;
       if (t === T) finalV[i] = v;
+      if (ft && t % 12 === 0) { fs.vStart[i] = v; fs.cYear[i] = 0; fs.baseW[i] = 0; }
     }
   }
-  return { value, finalV };
+  return { value, finalV, share, fs };
 }
 
 // ----------------------------------------------------------------------------- NL affordability (affordability_nl.py)
@@ -397,6 +443,70 @@ export function affordability(price, income, m, instal, age, cpiF, houseF, s, po
   return { test, flp, incomeLoan: loan, maxLoan, tt, nhg, other, gap };
 }
 
+// ----------------------------------------------------------------------------- UK rules (affordability_uk.py)
+export function sdlt(price, pol, ftb = true) {
+  const sd = pol.sdlt; let standard = 0, lo = 0;
+  for (let j = 0; j < sd.upper.length; j++) { const hi = sd.upper[j];
+    standard += sd.rates[j] * Math.min(Math.max(price - lo, 0), hi - lo); lo = hi; }
+  if (!ftb) return standard;
+  const f = sd.ftb;
+  const relief = f.reduced_rate * Math.min(Math.max(price - f.nil_rate_upper, 0), f.reduced_rate_upper - f.nil_rate_upper);
+  return price <= f.max_price ? relief : standard;
+}
+function affordabilityUK(price, income, m, cpiF, s, pol) {
+  const incomeLoan = pol.lti * income, ltvLoan = pol.max_ltv * price;
+  const maxLoan = s.apply_income_test ? Math.min(incomeLoan, ltvLoan) : ltvLoan;
+  const tt = sdlt(price, pol, s.first_time_buyer), other = s.other_costs_eur * cpiF;
+  const gap = Math.max(price + tt + other - maxLoan, 0);
+  return { test: m, flp: pol.lti, incomeLoan, maxLoan, tt, nhg: 0, other, gap };
+}
+// ----------------------------------------------------------------------------- German rules (affordability_de.py)
+export function incomeTax2026(x, pol) {           // § 32a EStG, single; floors as the law prescribes
+  const t = pol.income_tax; x = Math.floor(Math.max(x, 0));
+  const [z1, z2, z3, z4] = t.zones_upper_eur, y = (x - z1) / 10000, z = (x - z2) / 10000;
+  const tax = x <= z1 ? 0 : x <= z2 ? (t.zone2.a * y + t.zone2.b) * y : x <= z3 ? (t.zone3.a * z + t.zone3.b) * z + t.zone3.c
+    : x <= z4 ? t.zone4.rate * x - t.zone4.minus : t.zone5.rate * x - t.zone5.minus;
+  return Math.floor(tax);
+}
+export function netIncomeDE(gross, age, cf, pol) {
+  const si = pol.social_insurance;
+  const baseP = Math.min(gross, si.ceiling_pension_eur * cf), baseH = Math.min(gross, si.ceiling_health_eur * cf);
+  const pension = baseP * si.pension, unemployment = baseP * si.unemployment;
+  const health = baseH * (si.health + si.health_average_additional);
+  const care = baseH * (si.care + (age >= 23 ? si.care_childless_surcharge : 0));
+  const it = pol.income_tax;
+  const zve = gross - (it.employee_lump_sum_eur + it.special_expenses_lump_sum_eur) * cf - pension - 0.96 * health - care;
+  const tax = incomeTax2026(zve / cf, pol) * cf, so = pol.solidarity_surcharge, lim = so.exemption_limit_single_eur * cf;
+  const soli = tax <= lim ? 0 : Math.min(so.rate * tax, so.phase_in_rate * (tax - lim));
+  return gross - tax - soli - pension - unemployment - health - care;
+}
+function affordabilityDE(price, income, m, age, cpiF, s, pol) {
+  const net = netIncomeDE(income, age, cpiF, pol), L = pol.lending;
+  const incomeLoan = L.payment_share_of_net_income * net / (m + L.initial_repayment_rate), ltvLoan = L.max_ltv * price;
+  const maxLoan = s.apply_income_test ? Math.min(incomeLoan, ltvLoan) : ltvLoan;
+  const state = s.region || pol.transfer_tax.default_state, rate = pol.transfer_tax.rates[state];
+  if (rate === undefined) throw new Error(`Unknown Land ${state}`);
+  const n = pol.notary_land_registry, tt = rate * price;
+  const fees = (n.notary_rate * (1 + n.notary_vat) + n.land_registry_rate) * price, other = s.other_costs_eur * cpiF;
+  const gap = Math.max(price + tt + fees + other - maxLoan, 0);
+  return { test: m, flp: net, incomeLoan, maxLoan, tt, nhg: fees, other, gap };
+}
+export function affordAny(price, income, m, instal, age, cpiF, houseF, s, pol) {
+  if (pol.country === "uk") return affordabilityUK(price, income, m, cpiF, s, pol);
+  if (pol.country === "de") return affordabilityDE(price, income, m, age, cpiF, s, pol);
+  return affordability(price, income, m, instal, age, cpiF, houseF, s, pol);
+}
+function lisaFlows(contrib, nP, T, s, pol) {        // affordability_uk.lisa_flows
+  const T1 = T + 1, pay = new Float64Array(nP * T1), bonus = new Float64Array(nP * T1), L = pol.lisa;
+  if (!s.lisa || !(L.open_age_min <= s.age_at_start && s.age_at_start < L.open_age_max_exclusive)) return { pay, bonus };
+  for (let i = 0; i < nP; i++) for (let t = 1; t <= T; t++) {
+    const age = s.age_at_start + t / 12;
+    pay[i * T1 + t] = age >= L.contribute_until_age_exclusive ? 0 : Math.min(contrib[i * T1 + t], L.annual_limit / 12);
+  }
+  for (let i = 0; i < nP; i++) for (let t = 2; t <= T; t++) bonus[i * T1 + t] = L.bonus_rate * pay[i * T1 + t - 1];
+  return { pay, bonus };
+}
+
 // ----------------------------------------------------------------------------- full run (engine.run)
 /**
  * opts: { nPaths, seed, table, scenario, draws, keepPaths, months: [t...] }
@@ -429,8 +539,8 @@ export function runMany(params, policy, saverIn, opts) {
   const Dinc = new Float64Array(nP), Ginc = new Float64Array(nP);
   for (let i = 0; i < nP; i++) {
     const o = i * T1 + T, price = s.house_price_eur * m.houseIndex[o];
-    const a = affordability(price, income[o], m.mortgageRate[o], instal[T], s.age_at_start + T / 12, m.cpi[o], m.houseIndex[o],
-                            { ...s, apply_income_test: true }, policy);
+    const a = affordAny(price, income[o], m.mortgageRate[o], instal[T], s.age_at_start + T / 12, m.cpi[o], m.houseIndex[o],
+                        { ...s, apply_income_test: true }, policy);
     Dinc[i] = a.gap; Ginc[i] = Math.max(a.gap, s.own_target_pct * price + (a.tt + a.nhg + a.other));
   }
   const months = opts.keepPaths ? [...Array(T1).keys()] : [T];
@@ -439,31 +549,60 @@ export function runMany(params, policy, saverIn, opts) {
     const d = new Float64Array(nP), g = new Float64Array(nP);
     for (let i = 0; i < nP; i++) {
       const o = i * T1 + t, price = s.house_price_eur * m.houseIndex[o];
-      const a = affordability(price, income[o], m.mortgageRate[o], instal[t], s.age_at_start + t / 12, m.cpi[o], m.houseIndex[o], s, policy);
+      const a = affordAny(price, income[o], m.mortgageRate[o], instal[t], s.age_at_start + t / 12, m.cpi[o], m.houseIndex[o], s, policy);
       d[i] = a.gap; g[i] = Math.max(a.gap, s.own_target_pct * price + (a.tt + a.nhg + a.other));
     }
     D[t] = d; G[t] = g;
   }
 
-  const b3 = { enabled: true, tax_rate: policy.box3.tax_rate, allowance: policy.box3.allowance_single_eur,
+  const uk = policy.country === "uk", de = policy.country === "de";
+  const ftFund = de ? { ...policy.fund_tax, mode: "fund" } : null, ftBank = de ? { ...policy.fund_tax, mode: "interest" } : null;
+  const b3 = (uk || de) ? { enabled: false } : { enabled: true, tax_rate: policy.box3.tax_rate, allowance: policy.box3.allowance_single_eur,
                f_bank: policy.box3.deemed_return.bank_deposits, f_other: policy.box3.deemed_return.other_assets };
+  // UK: ISA wrappers (no tax); the Lifetime ISA bonus is invested with the payments; own flows exclude it
+  let invested = contrib, tracked = null;
+  if (uk) {
+    const { pay, bonus } = lisaFlows(contrib, nP, T, s, policy);
+    invested = new Float64Array(nP * T1); tracked = new Float64Array(nP * T1);
+    for (let j = 0; j < nP * T1; j++) { invested[j] = contrib[j] + bonus[j]; tracked[j] = pay[j] + bonus[j]; }
+  }
+  const lisaCharge = (port) => {                      // affordability_uk.lisa_charge at purchase
+    const ch = new Float64Array(nP);
+    if (!uk) return ch;
+    for (let i = 0; i < nP; i++) {
+      const price = s.house_price_eur * m.houseIndex[i * T1 + T];
+      ch[i] = price > policy.lisa.price_threshold ? policy.lisa.charge_above_threshold * (port.share[i] * port.finalV[i]) : 0;
+      port.finalV[i] -= ch[i];
+      if (port.value) port.value[i * T1 + T] = port.finalV[i];
+    }
+    return ch;
+  };
   const rets = sleeveReturns(m, prod);
   const strategies = opts.tables.map(table => {
     const W = staticWeights(table, T);
     const pe = W.some(w => w[1] > 0) ? new ProtectedEquitySleeve(m, params, prod) : null;
-    const port = runPortfolio(rets, pe, W, nP, T, s.initial_eur, contrib, b3, REBALANCE, [false, false, false, false], opts.keepPaths);
-    return { W, V: port.finalV, Vpath: port.value, irr: irrAnnual(contrib, s.initial_eur, port.finalV, nP, T) };
+    const port = runPortfolio(rets, pe, W, nP, T, s.initial_eur, invested, b3, REBALANCE, [false, false, false, false], opts.keepPaths, tracked, ftFund);
+    const charge = lisaCharge(port);
+    const exitTax = new Float64Array(nP);
+    if (de) for (let i = 0; i < nP; i++) {            // sale of all units at purchase (engine.run, country "de")
+      const f = port.fs, V = port.finalV[i];
+      exitTax[i] = Math.min(taxOn(ftFund, f.seg[i] + (V - f.basis[i] - f.vpCum[i]) * (1 - f.tf[i])), V);
+      port.finalV[i] = V - exitTax[i];
+      if (port.value) port.value[i * T1 + T] = port.finalV[i];
+    }
+    return { W, V: port.finalV, Vpath: port.value, charge, exitTax, irr: irrAnnual(contrib, s.initial_eur, port.finalV, nP, T) };
   });
 
   const bankR = { eqR: new Float64Array(nP * T), bondR: new Float64Array(nP * T), cashR: new Float64Array(nP * T) };
   for (let i = 0; i < nP; i++) for (let t = 0; t < T; t++) bankR.cashR[i * T + t] = (m.shortRate[i * T1 + t] - BENCHMARK_SAVINGS_SPREAD) / 12;
   const cashW = Array.from({ length: T1 }, () => [0, 0, 0, 1]);
-  const bench = runPortfolio(bankR, null, cashW, nP, T, s.initial_eur, contrib, b3, { ...REBALANCE, transaction_cost: 0 },
-                             [false, false, false, true], opts.keepPaths);
+  const bench = runPortfolio(bankR, null, cashW, nP, T, s.initial_eur, invested, b3, { ...REBALANCE, transaction_cost: 0 },
+                             [false, false, false, true], opts.keepPaths, tracked, ftBank);
+  const benchCharge = lisaCharge(bench);
 
   const housePa = new Float64Array(nP);
   for (let i = 0; i < nP; i++) housePa[i] = Math.pow(m.houseIndex[i * T1 + T], 12 / T) - 1;
-  const out = { T, nPaths: nP, strategies, B: bench.finalV, G: G[T], D: D[T], Dinc, Ginc, housePa,
+  const out = { T, nPaths: nP, strategies, B: bench.finalV, benchCharge, G: G[T], D: D[T], Dinc, Ginc, housePa,
                 bankIrr: irrAnnual(contrib, s.initial_eur, bench.finalV, nP, T), market: m, saver: s, instal };
   if (opts.keepPaths) { out.Bpath = bench.value; out.Gpath = G; out.Dpath = D; out.income = income; }
   return out;

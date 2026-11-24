@@ -1,8 +1,8 @@
 """End-to-end calibration: data -> regimes -> estimates -> bootstrap -> files.
 
-Run:  PYTHONPATH=. .venv/bin/python -m calibration.calibrate [--replicates 200] [--seed 20261110]
+Run:  PYTHONPATH=. .venv/bin/python -m calibration.calibrate [--country nl|uk] [--replicates 200] [--seed 20261110]
 
-Outputs
+Outputs (NL shown; UK writes params/uk_* and calibration/output/uk/)
   params/nl_calibrated.yaml            full-sample estimates (the bootstrap's reference set)
   params/nl_bootstrap.json             B re-calibrated parameter sets (option C)
   calibration/output/report.json       diagnostics: labels, cross-check, fallbacks, tests
@@ -25,10 +25,12 @@ from homepiggy.config import market_params_from_dict
 from .bootstrap import politis_white_block_length, stationary_indices
 from .classify import REGIMES, align_states, classify, cohens_kappa, dimension_scores, fit_hmm
 from .dataset import EONIA_ESTR_SOURCE, build_panel
+from .dataset_uk import SHARED_SERIES, UK_SERIES, build_panel_uk
+from .dataset_de import DE_SERIES, SHARED_SERIES_DE, build_panel_de
 from .estimate import LEVELS, estimate
-from .scenarios_hist import build_events
+from .scenarios_hist import EVENTS, EVENTS_DE, EVENTS_UK, build_events
 from .validate import pit_checks, ten_year_coverage
-from .sources import REGISTRY
+from .sources import REGISTRY, REGISTRY_ALL, fetch
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "calibration" / "output"
@@ -36,8 +38,15 @@ SAMPLE_START = np.datetime64("1999-01", "M")
 TENOR_1Y = 1.0
 
 
-def _manifest() -> dict:
-    p = OUT / "manifest.json"
+COUNTRIES = {
+    "nl": {"panel": build_panel, "out": OUT, "series": tuple(REGISTRY), "events": EVENTS},
+    "uk": {"panel": build_panel_uk, "out": OUT / "uk", "series": UK_SERIES + SHARED_SERIES, "events": EVENTS_UK},
+    "de": {"panel": build_panel_de, "out": OUT / "de", "series": DE_SERIES + SHARED_SERIES_DE, "events": EVENTS_DE},
+}
+
+
+def _manifest(out: Path = OUT) -> dict:
+    p = out / "manifest.json"
     return json.loads(p.read_text()) if p.exists() else {}
 
 
@@ -46,8 +55,8 @@ def house_seasonality(g: np.ndarray, months: np.ndarray) -> dict:
     ok = ~np.isnan(g)
     cal = months.astype(int) % 12
     groups = [g[ok & (cal == c)] for c in range(12)]
-    F, p = stats.f_oneway(*groups)
-    means = np.array([x.mean() for x in groups])
+    F, p = stats.f_oneway(*[x for x in groups if len(x) >= 2])     # quarterly data: 4 calendar months
+    means = np.array([x.mean() if len(x) else np.nan for x in groups])
     return {"F": float(F), "p_value": float(p), "calendar_means": means}
 
 
@@ -89,15 +98,24 @@ def _jsonable(o):
     return o
 
 
-def main(replicates: int = 200, seed: int = 20261110) -> dict:
-    OUT.mkdir(parents=True, exist_ok=True)
-    P = build_panel()
+def main(replicates: int = 200, seed: int = 20261110, country: str = "nl") -> dict:
+    C = COUNTRIES[country]
+    out_dir = C["out"]
+    out_dir.mkdir(parents=True, exist_ok=True)
+    P = C["panel"]()
     months = P.months
 
     # ---------------------------------------------------------------- regimes (primary + cross-check)
     scores = dimension_scores(P.ind)
     labels, probs = classify(scores)
-    in_sample = (months >= SAMPLE_START) & (labels >= 0) & ~np.isnan(P.v["house"])
+    quarterly = "house_quarterly" in P.aux
+    house_freq = "Q" if quarterly else "M"
+    if quarterly:   # house observed at quarter ends: the sample spans the observed quarters (+ their first 2 months)
+        hq = np.where(~np.isnan(P.v["house"]))[0]
+        house_cov = (np.arange(len(months)) >= hq[0] - 2) & (np.arange(len(months)) <= hq[-1])
+    else:
+        house_cov = ~np.isnan(P.v["house"])
+    in_sample = (months >= SAMPLE_START) & (labels >= 0) & house_cov
     first = int(np.argmax(in_sample))
     last = int(len(months) - 1 - np.argmax(in_sample[::-1]))
     if not in_sample[first:last + 1].all():
@@ -134,11 +152,18 @@ def main(replicates: int = 200, seed: int = 20261110) -> dict:
     aux = {k: P.aux[k][S] for k in ("vix_var", "realised_var", "cboe_skew")}
     iv = implied_vol_params(aux["vix_var"], aux["realised_var"], aux["cboe_skew"], float(P.aux["vix_min"][0]))
 
-    manifest = _manifest()
-    sources = [{"name": n, "provider": REGISTRY[n].provider, "key": REGISTRY[n].key, "url": REGISTRY[n].url,
+    if country == "nl":
+        manifest = _manifest()
+    else:   # UK: the manifest is written here from each cached file's metadata (retrieval time, SHA-256)
+        manifest = {n: {k: v for k, v in fetch(n)[1].items()
+                        if k in ("provider", "key", "url", "description", "units", "retrieved_utc", "retrieval",
+                                 "sha256", "bytes", "licence_note")} for n in C["series"]}
+        (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    sources = [{"name": n, "provider": REGISTRY_ALL[n].provider, "key": REGISTRY_ALL[n].key, "url": REGISTRY_ALL[n].url,
                 "retrieved_utc": manifest.get(n, {}).get("retrieved_utc"), "sha256": manifest.get(n, {}).get("sha256")}
-               for n in REGISTRY]
-    sources.append({"name": "eonia_estr_spread", "provider": "ECB", "url": EONIA_ESTR_SOURCE, "value_bp": 8.5})
+               for n in C["series"]]
+    if country == "nl":
+        sources.append({"name": "eonia_estr_spread", "provider": "ECB", "url": EONIA_ESTR_SOURCE, "value_bp": 8.5})
     stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
     sample = f"{sm[0]} to {sm[-1]} ({len(sm)} months)"
 
@@ -147,7 +172,7 @@ def main(replicates: int = 200, seed: int = 20261110) -> dict:
     for method, labs, init_p, suffix in (("repo_classifier", lab, probs[last], ""),
                                          ("hmm", hmm_lab, hmm_init, "_hmm")):
         variants[method] = _variant(method, suffix, rows, labs, init_p, initial, iv, aux, replicates, seed,
-                                    sources, stamp, sample, sm)
+                                    sources, stamp, sample, sm, prefix=country, house_freq=house_freq)
         variants[method]["report"]["validation"] = {
             "one_step_pit": pit_checks(rows, labs, variants[method]["ref"], variants[method]["house_z"]),
             "ten_year_coverage": ten_year_coverage(rows_raw, labs, variants[method]["ref"]),
@@ -158,9 +183,9 @@ def main(replicates: int = 200, seed: int = 20261110) -> dict:
     scen = {"provenance": {"description": "Historical-replay episodes measured from the calibration data; windows "
                            "found algorithmically; shocks = observed move minus the calibrated model's expected path.",
                            "calibrated_utc": stamp, "sources": sources},
-            "events": {m: build_events(rows_s, labs, sm, variants[m]["ref"], REGIMES)
+            "events": {m: build_events(rows_s, labs, sm, variants[m]["ref"], REGIMES, C["events"])
                        for m, labs in (("repo_classifier", lab), ("hmm", hmm_lab))}}
-    (ROOT / "params" / "nl_scenarios.json").write_text(json.dumps(_jsonable(scen), indent=1))
+    (ROOT / "params" / f"{country}_scenarios.json").write_text(json.dumps(_jsonable(scen), indent=1))
 
     report = {
         "calibrated_utc": stamp, "sample": sample,
@@ -173,8 +198,9 @@ def main(replicates: int = 200, seed: int = 20261110) -> dict:
                           for e in evs] for m, evs in scen["events"].items()},
         "panel_notes": P.notes,
     }
-    (OUT / "report.json").write_text(json.dumps(_jsonable(report), indent=2))
-    with open(OUT / "regimes.csv", "w", newline="") as fh:
+    report["country"] = country
+    (out_dir / "report.json").write_text(json.dumps(_jsonable(report), indent=2))
+    with open(out_dir / "regimes.csv", "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["month", "regime_repo", "regime_hmm"] + [f"p_{r}" for r in REGIMES] + ["s_g", "s_pi", "s_pol", "s_fc"])
         for i, mth in enumerate(sm):
@@ -183,9 +209,10 @@ def main(replicates: int = 200, seed: int = 20261110) -> dict:
     return report
 
 
-def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates, seed, sources, stamp, sample, sm):
+def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates, seed, sources, stamp, sample, sm,
+             prefix="nl", house_freq="M"):
     vp = np.ones(len(sm), dtype=bool); vp[0] = False
-    full = estimate(rows, lab, vp, REGIMES)
+    full = estimate(rows, lab, vp, REGIMES, house_freq=house_freq)
     ref = assemble(full.params, initial, init_probs, iv)
     market_params_from_dict(ref)        # fail closed if anything is out of range
 
@@ -202,7 +229,8 @@ def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates
     reps, fallback_log, invalid = [], [], []
     for b in range(replicates):
         idx, valid = stationary_indices(len(sm), L, rng)
-        e = estimate({k: v[idx] for k, v in rows.items()}, lab[idx], valid, REGIMES, fallback=full.params)
+        e = estimate({k: v[idx] for k, v in rows.items()}, lab[idx], valid, REGIMES, fallback=full.params,
+                     house_freq=house_freq)
         vv = aux["vix_var"][idx][:-1]                 # implied variance in month j
         rv_next = aux["realised_var"][idx][1:]        # realised variance in month j+1 (true successor only)
         ok = valid[1:] & ~np.isnan(vv) & ~np.isnan(rv_next)
@@ -225,11 +253,11 @@ def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates
 
     prov = {"synthetic": False, "regime_method": method,
             "description": "Full-sample calibration (reference set). Per the agreed method (option C), results are "
-                           f"reported as a band across params/nl_bootstrap{suffix}.json, not from this file alone.",
+                           f"reported as a band across params/{prefix}_bootstrap{suffix}.json, not from this file alone.",
             "sample": sample, "calibrated_utc": stamp, "seed": seed, "sources": sources}
-    with open(ROOT / "params" / f"nl_calibrated{suffix}.yaml", "w") as fh:
+    with open(ROOT / "params" / f"{prefix}_calibrated{suffix}.yaml", "w") as fh:
         yaml.safe_dump({"provenance": prov, "market": _jsonable(ref)}, fh, sort_keys=False, width=120)
-    with open(ROOT / "params" / f"nl_bootstrap{suffix}.json", "w") as fh:
+    with open(ROOT / "params" / f"{prefix}_bootstrap{suffix}.json", "w") as fh:
         json.dump({"provenance": {**prov, "description": f"{len(reps)} stationary-bootstrap re-calibrations "
                                   f"(regime method: {method})", "mean_block_length_months": L},
                    "replicates": _jsonable(reps)}, fh)
@@ -283,8 +311,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--replicates", type=int, default=200)
     ap.add_argument("--seed", type=int, default=20261110)
+    ap.add_argument("--country", choices=sorted(COUNTRIES), default="nl")
     a = ap.parse_args()
-    rep = main(a.replicates, a.seed)
+    rep = main(a.replicates, a.seed, a.country)
     print(json.dumps({"sample": rep["sample"], "cross_check": {k: rep["regime_cross_check"][k] for k in ("agreement", "cohens_kappa")},
                       **{m: {k: v[k] for k in ("regime_months", "expected_duration_months", "initial_regime_probs")}
                          for m, v in rep["variants"].items()}}, indent=1))

@@ -5,7 +5,7 @@ A glidepath fund model for first-time home buyers aged about 20, who invest
 protected equity (put-spread buffer) → short-dated bonds → cash** as the
 purchase date approaches.
 
-The Netherlands comes first; the UK and Germany are planned. The model is
+The Netherlands and the UK (England) are built; Germany is planned. The model is
 **numbers only**: every result comes from deterministic code and sourced
 data, with no LLM or discretionary judgement in any calculation.
 
@@ -33,10 +33,11 @@ separately.
 | 1. Python core | done (PR #1): engine, NL rules |
 | 2. Calibration from cited data, two regime methods, 200-replicate bootstrap bands, historical scenarios | done |
 | 3. Streamlit app (analysis) | done (this branch) |
-| 4. Browser app (pitch) | planned |
+| 4. Browser app (pitch): FirstHome landing page, NL and UK pages | done |
+| 5. UK (England): UK calibration, England rules, ISA / Lifetime ISA, UK glidepath study | done |
 
-Calibrated NL parameters live in `params/` (`nl_calibrated*.yaml`,
-`nl_bootstrap*.json`, `nl_scenarios.json`). Results must be read as **bands across the bootstrap
+Calibrated parameters live in `params/` (`nl_*` and `uk_*`: `*_calibrated*.yaml`,
+`*_bootstrap*.json`, `*_scenarios.json`); UK details in [docs/CALIBRATION_UK.md](docs/CALIBRATION_UK.md). Results must be read as **bands across the bootstrap
 replicates** (see `homepiggy/uncertainty.py`). Before using any number, read
 **[docs/LIMITATIONS.md](docs/LIMITATIONS.md)**.
 
@@ -121,7 +122,10 @@ MIT. Some methods are adapted from
 
 ## Pitch app (browser)
 
-`web/` is a static page that runs the model in the browser (`web/engine.js`, a line-by-line port of the
-Python engine, checked by `tests/test_web_parity.py`). Data comes from `python tools/export_web_data.py`;
-default results from `node web/build_precomputed.mjs`. Preview locally with `python tools/serve_web.py 18766`.
+`web/` is a static page (FirstHome) that runs the model in the browser (`web/engine.js`, a line-by-line port
+of the Python engine, checked by `tests/test_web_parity.py` for both countries). It opens on a landing page;
+`#nl` and `#uk` show the country pages. Data: `python tools/export_web_data.py --country nl|uk` (writes
+`web/data/<country>/`); default results: `node web/build_precomputed.mjs nl|uk`. Preview locally with
+`python tools/serve_web.py 18766`. UK calibration: `python -m calibration.calibrate --country uk` (two Bank of
+England files must first be downloaded by hand; see `calibration/sources.py`).
 The glidepath it shows comes from `studies/optimize_glidepath.py` (see docs/STUDY_GLIDEPATH_OPT.md).

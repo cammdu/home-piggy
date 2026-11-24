@@ -1,0 +1,94 @@
+# =============================================================================
+# UK (England) housing / tax policy parameters, as in force on 2026-11-23.
+#
+# Every number carries a `source` (URL) and a `verification` level:
+#   primary    - read directly from the official government page (GOV.UK, FCA)
+#   secondary  - reputable secondary source quoting the official figure
+#   assumption - modelling assumption, NOT a sourced fact; user should review
+#
+# Scope: England. Stamp Duty Land Tax applies in England and Northern Ireland;
+# Scotland (LBTT) and Wales (LTT) have their own taxes and are not modelled.
+# House prices in the calibration are the England UK HPI, for consistency.
+# Retrieved: 2026-11-23. Rules change at Budgets; re-verify before use.
+# =============================================================================
+
+meta:
+  country: UK
+  region: England
+  currency: GBP
+  policy_year: 2026
+  retrieved: "2026-11-23"
+
+lending:
+  max_ltv: 0.95
+  max_ltv_source: "https://www.gov.uk/government/publications/2025-mortgage-guarantee-scheme"
+  max_ltv_note: "Permanent Mortgage Guarantee Scheme (from July 2025): first-time buyers can borrow with a 5% deposit."
+  max_ltv_verification: primary
+  loan_to_income_limit: 4.5
+  lti_source: "https://www.fca.org.uk/publications/finalised-guidance/fg26-11-high-loan-income-lending"
+  lti_note: >-
+    The FPC's loan-to-income flow limit: at most 15% of new mortgages (market aggregate, measured over four
+    quarters; firm-level caps removed from 28 Oct 2026, PRA PS19/26 / FCA FG26/11) may be at 4.5x income or more.
+    The model treats 4.5x gross income as the borrowing limit for a typical buyer (assumption: some lenders go
+    higher for a minority of borrowers).
+  lti_verification: secondary
+  lti_rule_verification: assumption
+
+stamp_duty_land_tax:
+  standard_bands:            # marginal rates on the slice of the price in each band (single residential property)
+    upper_gbp: [125000, 250000, 925000, 1500000, .inf]
+    rates:     [0.00,   0.02,   0.05,   0.10,    0.12]
+  first_time_buyer_relief:
+    nil_rate_upper_gbp: 300000
+    reduced_rate: 0.05
+    reduced_rate_upper_gbp: 500000
+    max_price_gbp: 500000
+    rule: "No SDLT up to 300,000; 5% on the portion 300,001-500,000; above 500,000 the relief cannot be claimed and standard rates apply to the whole price."
+  thresholds_indexation: none
+  thresholds_note: >-
+    SDLT thresholds are fixed in pounds by statute and are not indexed. The model keeps them at their current
+    nominal values, so inflation and house-price growth pull more of a future purchase into tax (assumption: no
+    future policy change).
+  source: "https://www.gov.uk/stamp-duty-land-tax/residential-property-rates"
+  verification: primary
+
+lifetime_isa:
+  annual_limit_gbp: 4000
+  bonus_rate: 0.25
+  max_bonus_per_year_gbp: 1000
+  open_age_min: 18
+  open_age_max_exclusive: 40
+  contribute_until_age_exclusive: 50
+  min_months_before_purchase: 12
+  property_price_threshold_gbp: 450000
+  withdrawal_charge_above_threshold: 0.20
+  withdrawal_charge_other: 0.25
+  rules_source: "https://www.gov.uk/lifetime-isa"
+  withdrawal_source: "https://www.gov.uk/lifetime-isa/withdrawing-money-from-your-lifetime-isa"
+  quotes:
+    - "The government will add a 25% bonus to your savings, up to a maximum of £1,000 per year."
+    - "If the property costs more than £450,000, you'll pay a 20% withdrawal charge. There's no withdrawal charge for properties costing £450,000 and under."
+  verification: primary
+  bonus_timing: >-
+    Assumption: the bonus on each month's payment is credited one month later (GOV.UK does not state the
+    payment frequency; providers claim it monthly). The bonus on the final month's payment is not received
+    before purchase.
+  bonus_timing_verification: assumption
+  allocation: >-
+    Assumption: each month, up to 4,000/12 of the saver's payment goes into the Lifetime ISA (a standing order),
+    the rest into a Stocks and Shares ISA invested in the same fund. The 4,000 limit and the 450,000 threshold
+    stay fixed in pounds (unchanged since 2017).
+  allocation_verification: assumption
+
+isa:
+  annual_allowance_gbp: 20000
+  source: "https://www.gov.uk/individual-savings-accounts"
+  verification: primary
+  tax: "Returns inside an ISA or Lifetime ISA are free of UK income tax and capital gains tax."
+  note: >-
+    The page caps the monthly amount at 1,650 so a year's payments stay within the 20,000 allowance and the whole
+    pot is tax-free. The savings-account benchmark is a Cash ISA (and Cash Lifetime ISA when that is on), also
+    tax-free. A lower cash-ISA limit for under-65s from April 2027 (12,000) has been legislated but the Autumn
+    Budget 2026 said it will be kept at 20,000; at the page's maximum (19,800 a year, 4,000 of it in a Lifetime
+    ISA) the benchmark could exceed 12,000 a year in cash ISAs; this is ignored (assumption).
+  verification_cash_limit: assumption

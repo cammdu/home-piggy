@@ -5,7 +5,7 @@
 // Feasibility measure 1 (default): pot >= deposit target (share of price + buying costs, income test off)
 //   AND pot > savings account AND money-weighted return >= house-price growth.
 // Feasibility measure 2: pot >= own funds needed when the Dutch income limit also applies.
-import { runMany, quantile, cvarLow, affordability, bsPut, DEFAULT_TABLE, PRODUCT, historicalScenario } from "./engine.js";
+import { runMany, quantile, cvarLow, affordAny, bsPut, DEFAULT_TABLE, PRODUCT, historicalScenario } from "./engine.js";
 
 export const ALL_EQUITY = [{ from_years: 15, to_years: 0, weights: [1, 0, 0, 0] }];
 export const SEED = 20261110;
@@ -93,12 +93,13 @@ export function detail(params, policy, saver, nPaths, optTable) {
   let best = 0; for (let i = 1; i < G.length; i++) if (Math.abs(G[i] - gm) < Math.abs(G[best] - gm)) best = i;
   const o = best * T1 + T, s = r.saver, m = r.market;
   const price = s.house_price_eur * m.houseIndex[o];
-  const a = affordability(price, r.income[o], m.mortgageRate[o], r.instal[T], s.age_at_start + T / 12, m.cpi[o], m.houseIndex[o],
-                          { ...s, apply_income_test: true }, policy);
+  const a = affordAny(price, r.income[o], m.mortgageRate[o], r.instal[T], s.age_at_start + T / 12, m.cpi[o], m.houseIndex[o],
+                      { ...s, apply_income_test: true }, policy);
   const typical = { price, income: r.income[o], mortgage_rate: m.mortgageRate[o], test_rate: a.test, flp: a.flp,
     income_loan: a.incomeLoan, transfer_tax: a.tt, nhg: a.nhg, other: a.other, deposit_target: G[best],
     deposit_pct: s.own_target_pct, income_gap: a.gap, income_target: r.Ginc[best], age: s.age_at_start + T / 12,
-    house_growth_pa: r.housePa[best] };
+    house_growth_pa: r.housePa[best], lisa_charge: r.strategies[0].charge[best], pot: r.strategies[0].V[best],
+    p_lisa_charged: r.strategies[0].charge.filter(x => x > 0).length / r.nPaths };
   return { T, fan, weights: S.map((x, k) => ({ key: x.key, W: r.strategies[k].W })), typical };
 }
 

@@ -39,6 +39,14 @@ EVENTS = (
     EventRule("rate_shock_2022", "2022 rate shock: largest 12-month rise in NL mortgage rates", "mortgage_rate", "max_rise_12m", "2021-01", "2023-12"),
     EventRule("nl_housing_slump", "NL housing slump: house-price peak-to-trough", "house_index", "drawdown", "2006-01", "2015-12"),
 )
+# UK: the same windows and rules; only the descriptions and the housing episode's name change.
+EVENTS_UK = (
+    EventRule("gfc_2008", "Global financial crisis: equity peak-to-trough (sterling)", "equity_index", "drawdown", "2007-01", "2009-12"),
+    EventRule("euro_crisis_2011", "Euro sovereign debt crisis: equity peak-to-trough (sterling)", "equity_index", "drawdown", "2011-01", "2012-12"),
+    EventRule("covid_2020", "COVID-19 crash: equity peak-to-trough (sterling)", "equity_index", "drawdown", "2020-01", "2020-12"),
+    EventRule("rate_shock_2022", "2022 rate shock: largest 12-month rise in UK 5-year fixed mortgage rates", "mortgage_rate", "max_rise_12m", "2021-01", "2023-12"),
+    EventRule("uk_housing_slump", "England housing slump: house-price peak-to-trough", "house_index", "drawdown", "2006-01", "2015-12"),
+)
 
 
 def find_window(x: np.ndarray, months: np.ndarray, rule: EventRule) -> tuple[int, int]:
@@ -58,13 +66,23 @@ def find_window(x: np.ndarray, months: np.ndarray, rule: EventRule) -> tuple[int
     raise ValueError(rule.rule)
 
 
+# Germany: house prices fell mainly in 2022-24 (rate shock), not 2008-13; the housing episode searches that period.
+EVENTS_DE = (
+    EventRule("gfc_2008", "Global financial crisis: equity peak-to-trough", "equity_index", "drawdown", "2007-01", "2009-12"),
+    EventRule("euro_crisis_2011", "Euro sovereign debt crisis: equity peak-to-trough", "equity_index", "drawdown", "2011-01", "2012-12"),
+    EventRule("covid_2020", "COVID-19 crash: equity peak-to-trough", "equity_index", "drawdown", "2020-01", "2020-12"),
+    EventRule("rate_shock_2022", "2022 rate shock: largest 12-month rise in German mortgage rates", "mortgage_rate", "max_rise_12m", "2021-01", "2023-12"),
+    EventRule("de_housing_slump", "German housing slump: house-price peak-to-trough", "house_index", "drawdown", "2021-01", "2025-12"),
+)
+
+
 def build_events(rows: dict[str, np.ndarray], labels: np.ndarray, months: np.ndarray,
-                 params: dict, regimes: tuple[str, ...]) -> list[dict]:
+                 params: dict, regimes: tuple[str, ...], events: tuple[EventRule, ...] = EVENTS) -> list[dict]:
     eq_index = np.exp(np.nancumsum(np.nan_to_num(rows["equity"])))
     house_index = np.exp(np.nancumsum(np.nan_to_num(rows["house_raw"])))
     series = {"equity_index": eq_index, "house_index": house_index, **{v: rows[v] for v in LEVELS}}
     out = []
-    for ev in EVENTS:
+    for ev in events:
         a, b = find_window(series[ev.series], months, ev)
         n = b - a
         if n < 1:

@@ -48,6 +48,8 @@ class PortfolioResult:
     costs_paid: np.ndarray     # (P, T+1) transaction costs
     rebalanced: np.ndarray     # (P, T+1) bool
     locked: np.ndarray         # (P,) month at which lock-in fired (-1 = never)
+    tracked_share: np.ndarray | None = None   # (P,) final share of the pot held in a tracked sub-account
+    fund_tax_state: dict | None = None        # DE: basis, Vorabpauschalen, deemed-sale gains, exemption at the end
 
 
 TargetFn = Callable[[int, np.ndarray, np.ndarray], np.ndarray]
@@ -64,6 +66,8 @@ def run_portfolio(
     box3: Box3Params,
     rebalance: RebalancePolicy,
     box3_category: tuple[str, ...] = ("other", "other", "other", "other"),
+    tracked: np.ndarray | None = None,
+    fund_tax=None,
 ) -> PortfolioResult:
     """Simulate the pot.
 
@@ -71,6 +75,12 @@ def run_portfolio(
     pe: protected-equity sleeve object (handles its own valuation).
     contributions: (P, T+1); column 0 is ignored (use `initial`).
     box3_category: per sleeve, 'bank' or 'other' (deemed-return category).
+    tracked: optional (P, T+1) part of each contribution that belongs to a sub-account holding a
+      pro-rata slice of every sleeve (UK Lifetime ISA). Returns, tax and costs hit it pro rata, so its
+      share only changes when money comes in: share = (share * pot before + tracked) / (pot before + c).
+    fund_tax: optional affordability_de.FundTax (German fund / savings-interest taxation, see its docstring).
+      Hooks: deemed sale on an exemption change (before the month's payment), payment bookkeeping, and the
+      12-month tax after the payment (before rebalancing). The exit tax at purchase is applied by the engine.
     """
     rebalance.validate()
     P, T = returns["cash"].shape
@@ -89,6 +99,16 @@ def run_portfolio(
     if pe is not None:
         pe.set_value(sl[:, 0, PE])
     bank_mask = np.array([c == "bank" for c in box3_category])
+    share = np.zeros(P)
+    ft = fund_tax
+    if ft is not None:
+        v_start = np.full(P, float(initial))
+        basis = np.full(P, float(initial))
+        vp_cum = np.zeros(P)
+        seg = np.zeros(P)                      # taxable deemed-sale gains (after exemption), taxed at sale
+        c_year = np.zeros(P)
+        base_w = np.zeros(P)
+        tf_cur = ft.exemption(np.asarray(w0, float).reshape(P, -1))
 
     for t in range(1, T + 1):
         prev_total = sl[:, t - 1].sum(axis=1)
@@ -116,8 +136,41 @@ def run_portfolio(
         tgt[:, t] = w_t
         c = contributions[:, t]
         contrib[:, t] = c
+        if ft is not None and ft.mode == "fund":
+            tf_new = ft.exemption(w_t)
+            chg = tf_new != tf_cur
+            if np.any(chg):                    # § 22 InvStG deemed sale at the category change
+                seg = np.where(chg, seg + (total - basis - vp_cum) * (1.0 - tf_cur), seg)
+                basis = np.where(chg, total, basis)
+                vp_cum = np.where(chg, 0.0, vp_cum)
+                tf_cur = tf_new
+        if ft is not None:
+            m_in_year = (t - 1) % 12 + 1
+            basis = basis + c
+            c_year = c_year + c
+            base_w = base_w + c * (13 - m_in_year) / 12.0
+        if tracked is not None:
+            denom = total + c
+            with np.errstate(invalid="ignore", divide="ignore"):
+                share = np.where(denom > 0, (share * total + tracked[:, t]) / np.where(denom > 0, denom, 1.0), share)
         cur += c[:, None] * w_t
         total = cur.sum(axis=1)
+
+        if ft is not None and t % 12 == 0 and (ft.mode == "interest" or t < T):
+            gain = total - v_start - c_year
+            if ft.mode == "fund":
+                vp = np.minimum(ft.factor * ft.base_rate * (v_start + base_w), np.maximum(gain, 0.0))
+                due = ft.tax_on(vp * (1.0 - tf_cur))
+                vp_cum = vp_cum + vp
+            else:
+                due = ft.tax_on(gain)
+            due = np.minimum(due, total)
+            with np.errstate(invalid="ignore", divide="ignore"):
+                frac = np.where(total > 0, due / np.where(total > 0, total, 1.0), 0.0)
+            cur *= (1.0 - frac)[:, None]
+            basis *= (1.0 - frac); vp_cum *= (1.0 - frac); seg *= (1.0 - frac)
+            tax[:, t] += due
+            total = cur.sum(axis=1)
 
         with np.errstate(invalid="ignore", divide="ignore"):
             w_cur = np.where(total[:, None] > 0, cur / np.where(total > 0, total, 1.0)[:, None], w_t)
@@ -134,8 +187,14 @@ def run_portfolio(
         if pe is not None:
             pe.set_value(cur[:, PE])
         sl[:, t] = cur
+        if ft is not None and t % 12 == 0:
+            v_start = cur.sum(axis=1)
+            c_year = np.zeros(P)
+            base_w = np.zeros(P)
 
     return PortfolioResult(
         value=sl.sum(axis=2), sleeves=sl, target=tgt, nav=nav, contributions=contrib,
         tax_paid=tax, costs_paid=costs, rebalanced=reb, locked=np.full(P, -1),
+        tracked_share=share if tracked is not None else None,
+        fund_tax_state=({"basis": basis, "vp_cum": vp_cum, "seg": seg, "tf": tf_cur} if ft is not None else None),
     )

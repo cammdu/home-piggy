@@ -105,6 +105,7 @@ class BuyerProfile:
     energy_label: str = "EFG"            # key into policy energy_label_extra_loan_eur.table
     use_nhg: bool = True
     other_costs_eur: float = 0.0         # notary, valuation, advice: user input (2026 euros, CPI-indexed)
+    region: str = ""                     # DE only: Land code for Grunderwerbsteuer ("" = policy default)
 
 
 @dataclass

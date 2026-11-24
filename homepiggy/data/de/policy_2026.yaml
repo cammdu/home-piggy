@@ -1,0 +1,125 @@
+# =============================================================================
+# German housing / tax policy parameters, 2026 (as in force on 2026-11-24).
+#
+# Every number carries a `source` and a `verification` level:
+#   primary    - read from the statute (gesetze-im-internet.de) or an official publication
+#   secondary  - reputable secondary source quoting the figure
+#   assumption - modelling assumption, NOT a sourced fact; user should review
+# Retrieved: 2026-11-24.
+# =============================================================================
+
+meta:
+  country: DE
+  currency: EUR
+  policy_year: 2026
+  retrieved: "2026-11-24"
+
+transfer_tax:            # Grunderwerbsteuer, by Land (rate on the purchase price; no first-time buyer exemption)
+  rates:
+    BW: 0.050   # Baden-Württemberg
+    BY: 0.035   # Bayern
+    BE: 0.060   # Berlin
+    BB: 0.065   # Brandenburg
+    HB: 0.055   # Bremen (from 2025-07-01)
+    HH: 0.055   # Hamburg (from 2023-01-01)
+    HE: 0.060   # Hessen
+    MV: 0.060   # Mecklenburg-Vorpommern
+    NI: 0.050   # Niedersachsen
+    NW: 0.065   # Nordrhein-Westfalen
+    RP: 0.050   # Rheinland-Pfalz
+    SL: 0.065   # Saarland
+    SN: 0.055   # Sachsen (from 2023-01-01)
+    ST: 0.050   # Sachsen-Anhalt
+    SH: 0.065   # Schleswig-Holstein
+    TH: 0.050   # Thüringen (from 2024-01-01)
+  names: {BW: Baden-Württemberg, BY: Bayern, BE: Berlin, BB: Brandenburg, HB: Bremen, HH: Hamburg, HE: Hessen,
+          MV: Mecklenburg-Vorpommern, NI: Niedersachsen, NW: Nordrhein-Westfalen, RP: Rheinland-Pfalz, SL: Saarland,
+          SN: Sachsen, ST: Sachsen-Anhalt, SH: Schleswig-Holstein, TH: Thüringen}
+  default_state: BY
+  default_state_note: "User decision 2026-11-24: default Bavaria (lowest rate)."
+  source: "https://de.wikipedia.org/wiki/Grunderwerbsteuer_(Deutschland)"
+  verification: secondary
+  note: "Rates set by each Land under Art. 105 (2a) GG; table read 2026-11-24, no change dated 2026. Not yet cross-checked against each Landesgesetz."
+
+notary_land_registry:
+  notary_rate: 0.010          # notary fees ~1.0% of the price, plus 19% VAT
+  notary_vat: 0.19
+  land_registry_rate: 0.005   # court / land-register fees ~0.5%
+  source: "https://de.wikipedia.org/wiki/Nebenkosten_beim_Grundst%C3%BCckskauf"
+  verification: secondary
+  note: "Statutory fee tables (GNotKG) give these approximately; the percentages are typical values. Estate-agent commission is optional and not included (enter it as other costs)."
+
+lending:
+  max_ltv: 1.00
+  max_ltv_note: "No statutory loan-to-value cap in Germany; full financing of the price is offered, buying costs must be paid in cash."
+  max_ltv_verification: assumption
+  payment_share_of_net_income: 0.35
+  initial_repayment_rate: 0.02
+  rule_source: "https://www.drklein.de/einkommen-baufinanzierung-faq-1.html"
+  rule_note: "Rule of thumb: monthly payment at most 35-40% of household net income (lower end used). The annuity is (mortgage rate + initial repayment 2%) x loan / 12."
+  rule_verification: secondary
+  initial_repayment_verification: assumption
+
+income_tax:                   # § 32a EStG, single assessment (Grundtabelle), from 2026
+  zones_upper_eur: [12348, 17799, 69878, 277825]
+  zone2: {a: 914.51, b: 1400.0}             # (a*y + b)*y, y = (x - 12348)/10000
+  zone3: {a: 173.10, b: 2397.0, c: 1034.87} # (a*z + b)*z + c, z = (x - 17799)/10000
+  zone4: {rate: 0.42, minus: 11135.63}
+  zone5: {rate: 0.45, minus: 19470.38}
+  employee_lump_sum_eur: 1230               # Arbeitnehmer-Pauschbetrag, § 9a EStG
+  special_expenses_lump_sum_eur: 36         # Sonderausgaben-Pauschbetrag, § 10c EStG
+  source: "https://www.gesetze-im-internet.de/estg/__32a.html"
+  verification: primary
+  lump_sum_verification: primary
+  lump_sum_source: "https://www.gesetze-im-internet.de/estg/__9a.html"
+  indexation: "Projected years: euro amounts scaled with simulated CPI (tariff kept in real terms; assumption)."
+
+solidarity_surcharge:
+  rate: 0.055
+  exemption_limit_single_eur: 20350         # Freigrenze on income tax, § 3 Abs. 3 SolZG
+  phase_in_rate: 0.119                      # at most 11.9% of the excess, § 4 SolZG
+  source: "https://www.gesetze-im-internet.de/solzg_1995/__3.html"
+  verification: primary
+
+social_insurance:             # employee shares 2026
+  pension: 0.093
+  unemployment: 0.013
+  health: 0.073
+  health_average_additional: 0.0145         # half of the average Zusatzbeitrag 2.9%
+  care: 0.018
+  care_childless_surcharge: 0.006           # from age 23
+  ceiling_pension_eur: 101400
+  ceiling_health_eur: 69750
+  source: "https://www.tk.de/firmenkunden/fachthemen/fachthema-beitraege/sozialversicherungs-rechengroessen-2026-2203234"
+  verification: secondary
+  deduction_note: "Taxable income = gross - 1,230 - 36 - employee pension share - employee health share x 0.96 - employee care share (Vorsorgeaufwendungen simplified; assumption)."
+  deduction_verification: assumption
+
+capital_income_tax:           # Abgeltungsteuer on fund income for a private investor
+  rate: 0.25
+  solidarity: 0.055                         # on the 25%, no exemption limit (§ 3 Abs. 3 Satz 2, § 4 Satz 3 SolZG)
+  saver_allowance_eur: 1000                 # Sparer-Pauschbetrag, § 20 Abs. 9 EStG
+  church_tax: none
+  source: "https://www.gesetze-im-internet.de/estg/__20.html"
+  verification: primary
+
+investment_fund_tax:          # InvStG 2018
+  partial_exemption:
+    equity_fund: 0.30         # § 20 Abs. 1 InvStG: Aktienfonds (> 50% equity; § 2 Abs. 6)
+    mixed_fund: 0.15          # § 20 Abs. 2: Mischfonds (>= 25% equity; § 2 Abs. 7)
+    other: 0.0
+    equity_fund_threshold: 0.51
+    mixed_fund_threshold: 0.25
+  vorabpauschale:
+    base_rate_2026: 0.0320    # Basiszins zum 2.1.2026, BMF-Schreiben 13.1.2026
+    factor: 0.70
+    rule: "Basisertrag = value at start of year x 70% x Basiszins, capped at the year's increase in value; reduced by 1/12 for each full month before the month of purchase (§ 18 Abs. 1-2 InvStG)."
+  fictitious_sale: "On a change of partial-exemption category the units count as sold and re-bought; the gain is taxed only when the units are actually sold (§ 22 Abs. 1 and 3 InvStG)."
+  source: "https://www.gesetze-im-internet.de/invstg_2018/__18.html"
+  source_exemption: "https://www.gesetze-im-internet.de/invstg_2018/__20.html"
+  source_fictitious_sale: "https://www.gesetze-im-internet.de/invstg_2018/__22.html"
+  source_base_rate: "https://www.otto-schmidt.de/news/steuerrecht/basiszins-zur-berechnung-der-vorabpauschale-gem-18-absatz-4-invstg-basiszins-zum-2-1-2026-2026-01-15.html"
+  verification: primary
+  base_rate_verification: secondary
+  base_rate_projection: "Assumption: the Basiszins stays at its 2026 value in later years."
+  equity_share_note: "Assumption: the protected-equity sleeve holds equities physically and counts towards the equity share."

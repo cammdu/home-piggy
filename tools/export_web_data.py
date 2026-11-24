@@ -4,7 +4,8 @@ The browser engine (web/engine.js) reads exactly these files. Two things are pre
 JavaScript port needs no linear algebra: the Cholesky factor of each regime's (PSD-repaired)
 correlation matrix, via the same `cholesky_factors` used by the Python engine.
 
-Usage: PYTHONPATH=. python tools/export_web_data.py
+Usage: PYTHONPATH=. python tools/export_web_data.py [--country nl|uk]
+Writes web/data/<country>/: params_{repo,hmm}.json, policy_2026.json, scenarios.json, glidepaths.json.
 """
 from __future__ import annotations
 
@@ -16,13 +17,17 @@ from pathlib import Path
 from typing import Any
 
 from homepiggy.affordability_nl import load_policy
+from homepiggy.affordability_de import FundTax, load_policy_de
+from homepiggy.affordability_uk import load_policy_uk
 from homepiggy.config import LEVEL_VARS, MarketParams
 from homepiggy.market import cholesky_factors
 from homepiggy.uncertainty import load_bootstrap
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "web" / "data"
-BOOT = {"repo": ROOT / "params" / "nl_bootstrap.json", "hmm": ROOT / "params" / "nl_bootstrap_hmm.json"}
+BOOT = {c: {"repo": ROOT / "params" / f"{c}_bootstrap.json", "hmm": ROOT / "params" / f"{c}_bootstrap_hmm.json"}
+        for c in ("nl", "uk", "de")}
+INF = 1e18     # JSON has no infinity; larger than any price
 
 
 def params_to_web(p: MarketParams) -> dict[str, Any]:
@@ -48,6 +53,7 @@ def policy_to_web(year: int = 2026) -> dict[str, Any]:
         rows = list(csv.reader(fh))[1:]
     g = pol["mortgage_income_test"]["student_loan_grossup"]
     return {
+        "country": "nl",
         "year": year,
         "flp_income_rows": [float(r[0]) for r in rows],
         "flp_pct": [[float(x) / 100.0 for x in r[1:]] for r in rows],
@@ -69,9 +75,54 @@ def policy_to_web(year: int = 2026) -> dict[str, Any]:
     }
 
 
-def glidepaths_to_web() -> dict[str, Any]:
-    """The optimised glidepath and the evidence behind it, from studies/output/glidepath_opt.json."""
-    res = json.loads((ROOT / "studies" / "output" / "glidepath_opt.json").read_text())
+def policy_uk_to_web(year: int = 2026) -> dict[str, Any]:
+    pol = load_policy_uk(year)
+    sd, L = pol["stamp_duty_land_tax"], pol["lifetime_isa"]
+    f = sd["first_time_buyer_relief"]
+    return {
+        "country": "uk", "year": year, "currency": "GBP",
+        "max_ltv": pol["lending"]["max_ltv"], "lti": pol["lending"]["loan_to_income_limit"],
+        "sdlt": {"upper": [INF if x == float("inf") else float(x) for x in sd["standard_bands"]["upper_gbp"]],
+                 "rates": [float(x) for x in sd["standard_bands"]["rates"]],
+                 "ftb": {"nil_rate_upper": f["nil_rate_upper_gbp"], "reduced_rate": f["reduced_rate"],
+                         "reduced_rate_upper": f["reduced_rate_upper_gbp"], "max_price": f["max_price_gbp"]}},
+        "lisa": {"annual_limit": L["annual_limit_gbp"], "bonus_rate": L["bonus_rate"], "open_age_min": L["open_age_min"],
+                 "open_age_max_exclusive": L["open_age_max_exclusive"],
+                 "contribute_until_age_exclusive": L["contribute_until_age_exclusive"],
+                 "price_threshold": L["property_price_threshold_gbp"],
+                 "charge_above_threshold": L["withdrawal_charge_above_threshold"]},
+        "isa_allowance": pol["isa"]["annual_allowance_gbp"],
+        "sources": {"sdlt": sd["source"], "lisa": L["withdrawal_source"], "lending_ltv": pol["lending"]["max_ltv_source"],
+                    "lending_lti": pol["lending"]["lti_source"], "isa": pol["isa"]["source"]},
+    }
+
+
+def policy_de_to_web(year: int = 2026) -> dict[str, Any]:
+    pol = load_policy_de(year)
+    ft = FundTax.from_policy(pol, "fund")
+    it = dict(pol["income_tax"])
+    return {
+        "country": "de", "year": year, "currency": "EUR",
+        "transfer_tax": {"rates": pol["transfer_tax"]["rates"], "names": pol["transfer_tax"]["names"],
+                         "default_state": pol["transfer_tax"]["default_state"]},
+        "notary_land_registry": {k: pol["notary_land_registry"][k] for k in ("notary_rate", "notary_vat", "land_registry_rate")},
+        "lending": {k: pol["lending"][k] for k in ("max_ltv", "payment_share_of_net_income", "initial_repayment_rate")},
+        "income_tax": {k: it[k] for k in ("zones_upper_eur", "zone2", "zone3", "zone4", "zone5", "employee_lump_sum_eur",
+                                          "special_expenses_lump_sum_eur")},
+        "solidarity_surcharge": {k: pol["solidarity_surcharge"][k] for k in ("rate", "exemption_limit_single_eur", "phase_in_rate")},
+        "social_insurance": {k: v for k, v in pol["social_insurance"].items() if isinstance(v, (int, float))},
+        "fund_tax": {k: getattr(ft, k) for k in ("rate", "allowance", "base_rate", "factor", "tf_equity", "tf_mixed",
+                                                 "th_equity", "th_mixed")},
+        "sources": {"transfer_tax": pol["transfer_tax"]["source"], "notary": pol["notary_land_registry"]["source"],
+                    "income_tax": pol["income_tax"]["source"], "fund_tax": pol["investment_fund_tax"]["source"],
+                    "base_rate": pol["investment_fund_tax"]["source_base_rate"], "lending": pol["lending"]["rule_source"]},
+    }
+
+
+def glidepaths_to_web(country: str = "nl") -> dict[str, Any]:
+    """The optimised glidepath and the evidence behind it, from studies/output/glidepath_opt[_uk].json."""
+    tag = "" if country == "nl" else f"_{country}"
+    res = json.loads((ROOT / "studies" / "output" / f"glidepath_opt{tag}.json").read_text())
     if res.get("winner_index") is None:
         raise SystemExit("The optimisation found no glidepath passing the safety bar; nothing to export.")
     w = res["winner_index"]
@@ -114,12 +165,18 @@ def glidepaths_to_web() -> dict[str, Any]:
                       "handover might do better still; that was not tested." if edge else ""))
     return {"optimised": {"label": c["label"], "table": c["table"], "summary": summary, "how": how,
                           "params": {k: c[k] for k in ("a", "b", "c", "blend")}},
-            "run_date": res["setup"]["run_date"], "source": "studies/output/glidepath_opt.json"}
+            "run_date": res["setup"]["run_date"], "source": f"studies/output/glidepath_opt{tag}.json",
+            "heldout": {m: {k: {kk: res["heldout"][m]["rows"][j][kk] for kk in ("growth", "safety", "p_target", "p_all3",
+                                                                                "p_income_test", "share_safer_than_bank",
+                                                                                "share_growth_above_today")}
+                            for k, j in (("opt", w), ("today", 0), ("bank", -1))} for m in ("repo", "hmm")},
+            "crisis_pass": [n_pass, n_crisis]}
 
 
-def main() -> None:
-    OUT.mkdir(parents=True, exist_ok=True)
-    for method, path in BOOT.items():
+def main(country: str = "nl") -> None:
+    out = OUT / country
+    out.mkdir(parents=True, exist_ok=True)
+    for method, path in BOOT[country].items():
         params, prov = load_bootstrap(path)
         doc = {
             "method": method,
@@ -129,14 +186,19 @@ def main() -> None:
                            if k in prov},
             "replicates": [params_to_web(p) for p in params],
         }
-        (OUT / f"params_{method}.json").write_text(json.dumps(doc, separators=(",", ":")))
-    (OUT / "policy_nl_2026.json").write_text(json.dumps(policy_to_web(), indent=1, default=str))
-    sc = json.loads((ROOT / "params" / "nl_scenarios.json").read_text())
-    (OUT / "scenarios.json").write_text(json.dumps(sc, indent=1))
-    if (ROOT / "studies" / "output" / "glidepath_opt.json").exists():
-        (OUT / "glidepaths.json").write_text(json.dumps(glidepaths_to_web(), indent=1))
-    print("wrote", sorted(p.name for p in OUT.iterdir()))
+        (out / f"params_{method}.json").write_text(json.dumps(doc, separators=(",", ":")))
+    pol = {"nl": policy_to_web, "uk": policy_uk_to_web, "de": policy_de_to_web}[country]()
+    (out / "policy_2026.json").write_text(json.dumps(pol, indent=1, default=str))
+    sc = json.loads((ROOT / "params" / f"{country}_scenarios.json").read_text())
+    (out / "scenarios.json").write_text(json.dumps(sc, indent=1))
+    tag = "" if country == "nl" else f"_{country}"
+    if (ROOT / "studies" / "output" / f"glidepath_opt{tag}.json").exists():
+        (out / "glidepaths.json").write_text(json.dumps(glidepaths_to_web(country), indent=1))
+    print("wrote", sorted(p.name for p in out.iterdir()))
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--country", choices=("nl", "uk", "de"), default="nl")
+    main(ap.parse_args().country)

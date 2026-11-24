@@ -1,0 +1,349 @@
+provenance:
+  synthetic: false
+  regime_method: hmm
+  description: Full-sample calibration (reference set). Per the agreed method (option C), results are reported as a band across
+    params/uk_bootstrap_hmm.json, not from this file alone.
+  sample: 2001-01 to 2026-09 (309 months)
+  calibrated_utc: '2026-11-23T16:31:12+00:00'
+  seed: 20261110
+  sources:
+  - name: boe_iadb
+    provider: Bank of England Database
+    key: IUMASOIA, IUDBEDR, IUMBV42
+    url: https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/1990&Dateto=now&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N&SeriesCodes=IUMASOIA,IUDBEDR,IUMBV42
+    retrieved_utc: '2026-11-23T16:30:29+00:00'
+    sha256: 17a3eb9d22365884d14780021659f2081b6e3247cdfa0b891ecf4bbfb1fbd3f3
+  - name: gilt_curve
+    provider: Bank of England (yield curves)
+    key: GLC nominal month-end spot curve, 2-year
+    url: https://www.bankofengland.co.uk/-/media/boe/files/statistics/yield-curves/glcnominalmonthedata.zip
+    retrieved_utc: '2026-11-23T16:30:29+00:00'
+    sha256: c45854fc77b749752572215cbb6385674d618461bf97bb4e6b476d9c3726a7f8
+  - name: gbp_per_eur
+    provider: ECB Data Portal
+    key: EXR.M.GBP.EUR.SP00.E
+    url: https://data-api.ecb.europa.eu/service/data/EXR/M.GBP.EUR.SP00.E?format=csvdata
+    retrieved_utc: '2026-11-23T16:26:54+00:00'
+    sha256: 219399ffb162d4fecaa543d6bd0a3271e7c03a6ef01be7781ea65970d994ce17
+  - name: cpi_uk_anr
+    provider: Office for National Statistics
+    key: D7G7 (MM23)
+    url: https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7g7/mm23/data
+    retrieved_utc: '2026-11-23T16:26:54+00:00'
+    sha256: f7fef6130d7c366b8cae1715254c7c3113b2d6a496a2e89cc2313c3c3efc0520
+  - name: cpi_uk_idx
+    provider: Office for National Statistics
+    key: D7BT (MM23)
+    url: https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7bt/mm23/data
+    retrieved_utc: '2026-11-23T16:26:54+00:00'
+    sha256: b94a93c0ace504a2f355e116a2887df04476bcf4cf355dc66d1706b34544c0b4
+  - name: gdp_uk
+    provider: Office for National Statistics
+    key: IHYR (QNA)
+    url: https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyr/qna/data
+    retrieved_utc: '2026-11-23T16:26:54+00:00'
+    sha256: f27836f79c56c5e8f3291a7df344971086784b770dee09c17b38496e8b0eee72
+  - name: unemp_uk
+    provider: Office for National Statistics
+    key: MGSX (LMS)
+    url: https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms/data
+    retrieved_utc: '2026-11-23T16:26:55+00:00'
+    sha256: 17dc5bae919c94f0cf44232766a9baecfef00db5ab9f58d1b4c52b62e14053ee
+  - name: ciss_uk
+    provider: ECB Data Portal
+    key: CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX
+    url: https://data-api.ecb.europa.eu/service/data/CISS/D.GB.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata
+    retrieved_utc: '2026-11-23T16:27:19+00:00'
+    sha256: 8ad335435e43d8caeab14fc259735cfb3fa4e43a9e33869c3ea1a7cde6eecd81
+  - name: house_eng
+    provider: HM Land Registry (UK House Price Index)
+    key: UKHPI England, all property types
+    url: https://landregistry.data.gov.uk/app/ukhpi/download/new.csv?from=1995-01-01&to=2030-12-01&location=http%3A%2F%2Flandregistry.data.gov.uk%2Fid%2Fregion%2Fengland&thm%5B%5D=property_type&thm%5B%5D=buyer_status&in%5B%5D=hpi&in%5B%5D=avg
+    retrieved_utc: '2026-11-23T16:27:20+00:00'
+    sha256: ad0a27f47c467b9c3f3018349cc484dd47b2e71b13feddc2f76f8aa8a8367fbb
+  - name: usd_per_eur
+    provider: ECB Data Portal
+    key: EXR.M.USD.EUR.SP00.E
+    url: https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.E?format=csvdata
+    retrieved_utc: '2026-11-10T10:17:38+00:00'
+    sha256: dc98a9b6affd9589d0e6acfaf24b96456cb60f2fa7c2fbd652ab1a5fc1f71623
+  - name: ff_dev
+    provider: Kenneth R. French Data Library
+    key: Developed_3_Factors
+    url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip
+    retrieved_utc: '2026-11-10T10:17:49+00:00'
+    sha256: 3f99cfdeddd1914e3d8f84ce51d775aeed3e98ed0c290957e88f4df9912f8a23
+  - name: ff_us_daily
+    provider: Kenneth R. French Data Library
+    key: F-F_Research_Data_Factors_daily
+    url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip
+    retrieved_utc: '2026-11-10T10:17:53+00:00'
+    sha256: 96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89
+  - name: vix
+    provider: FRED (St. Louis Fed), source Cboe
+    key: VIXCLS
+    url: https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS
+    retrieved_utc: '2026-11-10T10:17:56+00:00'
+    sha256: 049654ab9cad9c14a587c843bb0e771d6a1610aa25a32b14100037f95ad2c4ad
+  - name: skew
+    provider: Cboe
+    key: SKEW
+    url: https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv
+    retrieved_utc: '2026-11-10T10:19:36+00:00'
+    sha256: 6a70f2fd77d737f8b6be233bf10b81e61b35886816534b7deb0aacf9b347274c
+market:
+  regimes:
+  - Expansion
+  - Late-cycle
+  - Recession
+  - Recovery
+  transition_matrix:
+  - - 0.9692307692307692
+    - 0.0
+    - 0.015384615384615385
+    - 0.015384615384615385
+  - - 0.0
+    - 0.9647058823529412
+    - 0.03529411764705882
+    - 0.0
+  - - 0.03125
+    - 0.046875
+    - 0.890625
+    - 0.03125
+  - - 0.0
+    - 0.010638297872340425
+    - 0.031914893617021274
+    - 0.9574468085106383
+  initial_regime:
+  - 8.216530213215194e-59
+  - 0.9983061223654105
+  - 0.0016932646669254251
+  - 6.129676640963725e-07
+  equity:
+    mu:
+    - 0.13380181743887437
+    - 0.13518923318145398
+    - -0.009166873481190128
+    - 0.06084418931617988
+    sigma:
+    - 0.10023633162201279
+    - 0.10252125313787819
+    - 0.19245211570523718
+    - 0.14433094919892583
+  house:
+    mu:
+    - 0.05227479466272614
+    - 0.08415096049213594
+    - 0.006453384356741873
+    - 0.04904319659946904
+    sigma:
+    - 0.004040835213411307
+    - 0.007645057717558582
+    - 0.014608145552906059
+    - 0.008616566445524576
+    ar1: 0.9163646333196077
+  correlation:
+    Expansion:
+    - - 1.0
+      - 0.02879
+      - -0.035625
+      - 0.036751
+      - 0.020617
+      - -0.010682
+    - - 0.02879
+      - 1.0
+      - -0.038464
+      - 0.084541
+      - 0.07297
+      - -0.031426
+    - - -0.035625
+      - -0.038464
+      - 1.0
+      - -0.232052
+      - 0.113399
+      - 0.078524
+    - - 0.036751
+      - 0.084541
+      - -0.232052
+      - 1.0
+      - 0.047664
+      - -0.000425
+    - - 0.020617
+      - 0.07297
+      - 0.113399
+      - 0.047664
+      - 1.0
+      - 0.05194
+    - - -0.010682
+      - -0.031426
+      - 0.078524
+      - -0.000425
+      - 0.05194
+      - 1.0
+    Late-cycle:
+    - - 1.0
+      - 0.02879
+      - -0.035625
+      - 0.036751
+      - 0.020617
+      - -0.010682
+    - - 0.02879
+      - 1.0
+      - -0.038464
+      - 0.084541
+      - 0.07297
+      - -0.031426
+    - - -0.035625
+      - -0.038464
+      - 1.0
+      - -0.232052
+      - 0.113399
+      - 0.078524
+    - - 0.036751
+      - 0.084541
+      - -0.232052
+      - 1.0
+      - 0.047664
+      - -0.000425
+    - - 0.020617
+      - 0.07297
+      - 0.113399
+      - 0.047664
+      - 1.0
+      - 0.05194
+    - - -0.010682
+      - -0.031426
+      - 0.078524
+      - -0.000425
+      - 0.05194
+      - 1.0
+    Recession:
+    - - 1.0
+      - 0.02879
+      - -0.035625
+      - 0.036751
+      - 0.020617
+      - -0.010682
+    - - 0.02879
+      - 1.0
+      - -0.038464
+      - 0.084541
+      - 0.07297
+      - -0.031426
+    - - -0.035625
+      - -0.038464
+      - 1.0
+      - -0.232052
+      - 0.113399
+      - 0.078524
+    - - 0.036751
+      - 0.084541
+      - -0.232052
+      - 1.0
+      - 0.047664
+      - -0.000425
+    - - 0.020617
+      - 0.07297
+      - 0.113399
+      - 0.047664
+      - 1.0
+      - 0.05194
+    - - -0.010682
+      - -0.031426
+      - 0.078524
+      - -0.000425
+      - 0.05194
+      - 1.0
+    Recovery:
+    - - 1.0
+      - 0.02879
+      - -0.035625
+      - 0.036751
+      - 0.020617
+      - -0.010682
+    - - 0.02879
+      - 1.0
+      - -0.038464
+      - 0.084541
+      - 0.07297
+      - -0.031426
+    - - -0.035625
+      - -0.038464
+      - 1.0
+      - -0.232052
+      - 0.113399
+      - 0.078524
+    - - 0.036751
+      - 0.084541
+      - -0.232052
+      - 1.0
+      - 0.047664
+      - -0.000425
+    - - 0.020617
+      - 0.07297
+      - 0.113399
+      - 0.047664
+      - 1.0
+      - 0.05194
+    - - -0.010682
+      - -0.031426
+      - 0.078524
+      - -0.000425
+      - 0.05194
+      - 1.0
+  implied_vol:
+    vrp_ratio: 1.1127857494159175
+    skew: 0.12665494580131548
+    min_vol: 0.09140000000000001
+  short_rate:
+    theta:
+    - 0.004283863429031298
+    - 0.05684681385007071
+    - 0.000468
+    - 0.014651159839293606
+    sigma:
+    - 0.0002797482009125542
+    - 0.004951680400048976
+    - 0.011940000504691529
+    - 0.0070452535374200785
+    half_life_months: 21.26318176767013
+    initial: 0.037305000000000005
+  term_spread:
+    theta:
+    - 0.0006582308254531521
+    - -0.0019545971426495946
+    - 0.0034219243183140576
+    - 0.0010655354639787658
+    sigma:
+    - 0.004390125284327524
+    - 0.008650398128529144
+    - 0.013927456303327717
+    - 0.009448309809952477
+    half_life_months: 4.013891957368873
+    initial: 0.009319611736979726
+  mortgage_rate:
+    theta:
+    - 0.0251970560678647
+    - 0.05156096037165838
+    - 0.060025826219821055
+    - 0.023465609123639073
+    sigma:
+    - 0.003280438749525725
+    - 0.006752087110202402
+    - 0.009541054724578139
+    - 0.004000277882533597
+    half_life_months: 28.73996891717908
+    initial: 0.049800000000000004
+  inflation:
+    theta:
+    - 0.0014054213230992318
+    - -0.001
+    - 0.08896325871556382
+    - 0.03863441875051114
+    sigma:
+    - 0.008930808490014349
+    - 0.01319868549787238
+    - 0.01797596016305297
+    - 0.010937040092461464
+    half_life_months: 27.554558014639266
+    initial: 0.035

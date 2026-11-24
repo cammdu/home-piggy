@@ -17,12 +17,12 @@ import numpy as np
 import pytest
 
 from homepiggy.affordability_nl import BuyerProfile, FinancingCostTable, affordability_gap, load_policy
-from homepiggy.engine import RunConfig, SaverProfile, _streams, _student_instalment, run
+from homepiggy.engine import RunConfig, SaverProfile, UK_DEFAULT_SAVER, _streams, _student_instalment, afford, load_rules, run
 from homepiggy.metrics import irr_monthly
 from homepiggy.glidepath import DEFAULT_TABLE, GlidepathSpec
 from homepiggy.scenarios import historical_scenario
 from homepiggy.uncertainty import load_bootstrap
-from tools.export_web_data import params_to_web, policy_to_web
+from tools.export_web_data import params_to_web, policy_to_web, policy_uk_to_web
 
 ROOT = Path(__file__).resolve().parents[1]
 NODE = shutil.which("node")
@@ -39,14 +39,29 @@ CASES = [
          table=None, event="gfc_2008", end=0),
     dict(name="repo_all_equity_covid", method="nl_bootstrap", rep=123, saver=dict(horizon_years=8, monthly_contribution_eur=800.0),
          buyer={}, table=ALL_EQUITY, event="covid_2020", end=12),
+    # UK (England): default saver in pounds, Lifetime ISA on; prices cross the 450k LISA and 500k SDLT thresholds
+    dict(name="uk_repo_default_lisa", country="uk", method="uk_bootstrap", rep=0, saver={}, buyer={}, table=None,
+         event=None, end=0, lisa=True),
+    dict(name="uk_hmm_no_lisa_income_test", country="uk", method="uk_bootstrap_hmm", rep=9,
+         saver=dict(apply_income_test=True, house_price_eur=520000.0), buyer=dict(other_costs_eur=3000.0), table=None,
+         event="rate_shock_2022", end=0, lisa=False),
+    dict(name="uk_repo_lisa_too_old_equity", country="uk", method="uk_bootstrap", rep=57,
+         saver=dict(horizon_years=9, monthly_contribution_eur=1200.0), buyer=dict(age_at_start=41.0), table=ALL_EQUITY,
+         event="uk_housing_slump", end=6, lisa=True),
+    dict(name="uk_repo_lisa_mid_price", country="uk", method="uk_bootstrap", rep=31,
+         saver=dict(house_price_eur=380000.0, monthly_contribution_eur=250.0), buyer={}, table=None,
+         event=None, end=0, lisa=True),
 ]
 N_PATHS = 40
 
 
-def _case(c: dict, scen_events: dict) -> tuple[dict, dict]:
+def _case(c: dict, scen: dict) -> tuple[dict, dict]:
+    country = c.get("country", "nl")
+    scen_events = scen[country]
     params = load_bootstrap(ROOT / "params" / f"{c['method']}.json")[0][c["rep"]]
     buyer = replace(BuyerProfile(), **c["buyer"])
-    saver = replace(SaverProfile(), **c["saver"], buyer=buyer)
+    base = UK_DEFAULT_SAVER if country == "uk" else SaverProfile()
+    saver = replace(base, **c["saver"], buyer=buyer)
     T = saver.horizon_years * 12
     table = c["table"] or [dict(r) for r in DEFAULT_TABLE]
     key = "hmm" if c["method"].endswith("hmm") else "repo_classifier"
@@ -55,25 +70,25 @@ def _case(c: dict, scen_events: dict) -> tuple[dict, dict]:
     if event:
         kw["scenario"] = historical_scenario(event, T, c["end"])
     cfg = RunConfig(market=params, saver=saver, glidepath=GlidepathSpec(kind="step", table=table), n_paths=N_PATHS,
-                    seed=4242 + c["rep"], **kw)
+                    seed=4242 + c["rep"], country=country, lisa=c.get("lisa", True), **kw)
     gi, gt, gn = _streams(cfg.seed)                      # the exact draws simulate_market_paths makes
     draws = {"init": gi.random(N_PATHS).tolist(), "U": gt.random((N_PATHS, T)).ravel().tolist(),
              "Z": gn.standard_normal((N_PATHS, T, 6)).ravel().tolist()}
     r = run(cfg)
     # measure 2: own funds needed with the income test, and money-weighted returns (metrics.irr_monthly)
-    pol = load_policy(cfg.policy_year)
-    a = affordability_gap(r.price[:, -1], r.income[:, -1], r.market.mortgage_rate[:, -1],
-                          np.full(N_PATHS, _student_instalment(saver, T)[T]), buyer.age_at_start + T / 12,
-                          r.market.cpi[:, -1], r.market.house_index[:, -1], buyer, pol, FinancingCostTable.load(pol),
-                          apply_income_test=True)
+    pol, tab = load_rules(cfg)
+    a = afford(cfg, pol, tab, r.price[:, -1], r.income[:, -1], r.market.mortgage_rate[:, -1],
+               np.full(N_PATHS, _student_instalment(saver, T)[T]), buyer.age_at_start + T / 12,
+               r.market.cpi[:, -1], r.market.house_index[:, -1], apply_income_test=True)
     g_inc = np.maximum(a.required_deposit, saver.own_target_pct * r.price[:, -1] + a.transfer_tax + a.nhg_premium
                        + a.other_costs)
 
     def irr(port):
         f = -port.contributions.copy(); f[:, -1] += port.value[:, -1]
         return (1.0 + irr_monthly(f)) ** 12 - 1.0
-    s = {k: v for k, v in vars(saver).items() if k != "buyer"} | vars(buyer)
-    fx = {"name": c["name"], "params": params_to_web(params), "saver": s, "table": table, "event": event,
+    s = {k: v for k, v in vars(saver).items() if k != "buyer"} | vars(buyer) | {"lisa": c.get("lisa", True)}
+    web_pol = policy_uk_to_web() if country == "uk" else json.loads(json.dumps(policy_to_web(), default=str))
+    fx = {"name": c["name"], "policy": web_pol, "params": params_to_web(params), "saver": s, "table": table, "event": event,
           "end_months_before_purchase": c["end"], "n_paths": N_PATHS, "draws": draws, "mid_month": T // 2}
     exp = {"V": r.portfolio.value[:, -1], "B": r.benchmark.value[:, -1], "G": r.target_path[:, -1],
            "D": r.required_path[:, -1], "Vpath": r.portfolio.value, "G_mid": r.target_path[:, T // 2],
@@ -86,11 +101,10 @@ def _case(c: dict, scen_events: dict) -> tuple[dict, dict]:
 
 @pytest.fixture(scope="module")
 def parity(tmp_path_factory):
-    scen = json.loads((ROOT / "params" / "nl_scenarios.json").read_text())["events"]
+    scen = {c: json.loads((ROOT / "params" / f"{c}_scenarios.json").read_text())["events"] for c in ("nl", "uk")}
     fxs, exps = zip(*[_case(c, scen) for c in CASES])
     d = tmp_path_factory.mktemp("parity")
-    (d / "fx.json").write_text(json.dumps({"policy": json.loads(json.dumps(policy_to_web(), default=str)),
-                                           "cases": list(fxs)}))
+    (d / "fx.json").write_text(json.dumps({"cases": list(fxs)}))
     subprocess.run([NODE, str(ROOT / "web" / "test" / "parity_runner.mjs"), str(d / "fx.json"), str(d / "out.json")],
                    check=True, cwd=ROOT)
     got = json.loads((d / "out.json").read_text())
@@ -115,3 +129,9 @@ def test_cases_exercise_the_rules(parity):
     assert np.ptp(np.asarray(got["regimes"])) > 0
     _, exp = parity["repo_baseline_default"]
     assert 0.0 < np.mean(exp["V"] >= exp["G"]) < 1.0      # success threshold is crossed on some paths
+    # UK: the default case must have purchases on both sides of the 450k Lifetime ISA threshold
+    got, _ = parity["uk_repo_default_lisa"]
+    T1 = got["T1"]
+    price_T = 335_000.0 * np.asarray(got["house_index"]).reshape(-1, T1)[:, -1]
+    assert np.any(price_T > 450_000) and np.any(price_T <= 450_000)
+    assert np.any(price_T > 500_000)                                       # SDLT relief lost on some paths

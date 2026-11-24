@@ -30,6 +30,26 @@ Retrieved 2026-11-10. Dutch rules change every 1 January.
 | NHG limit €470,000 (€498,200 with energy measures); premium 0.4% | | [Rijksoverheid, 8 Oct 2025](https://www.rijksoverheid.nl/actueel/nieuws/2025/10/08/nhg-grens-stijgt-naar--euro--470.000-euro-afsluitpremie-blijft-04) | primary |
 | Box 3: rate 36%; allowance €59,357 (€118,714 partners); deemed 1.28% bank (provisional), 6.00% other (definitive), 2.70% debts (provisional) | | [SRA, 8 Jan 2026](https://www.sra.nl/nieuws/004501/2026/01/box-3-percentages-vrijstellingen-en-bedragen-2026). Not yet cross-checked on belastingdienst.nl | secondary |
 
+## UK (England) policy, as in force on 2026-11-23
+
+Machine-readable: [`homepiggy/data/uk/policy_2026.yaml`](../homepiggy/data/uk/policy_2026.yaml).
+
+| Item | Value | Source | Level |
+|---|---|---|---|
+| SDLT standard bands (single residential property) | 0% to £125,000; 2% to £250,000; 5% to £925,000; 10% to £1.5m; 12% above | [GOV.UK: residential property rates](https://www.gov.uk/stamp-duty-land-tax/residential-property-rates) | primary |
+| SDLT first-time buyer relief | 0% to £300,000; 5% on £300,001–£500,000; no relief above £500,000 | same page | primary |
+| SDLT thresholds kept at nominal values in future years | not indexed | statute fixes them in pounds | assumption |
+| Maximum loan-to-value | 95% | [GOV.UK: 2025 mortgage guarantee scheme](https://www.gov.uk/government/publications/2025-mortgage-guarantee-scheme) | primary |
+| Loan-to-income limit | 4.5× gross income | [FCA FG26/11](https://www.fca.org.uk/publications/finalised-guidance/fg26-11-high-loan-income-lending) (FPC flow limit: ≤15% of lending at ≥4.5×, market aggregate) | secondary; treating 4.5× as a hard limit is an assumption |
+| Lifetime ISA: £4,000 a year, 25% bonus (max £1,000), open at 18–39, pay in until 50 | | [GOV.UK: Lifetime ISA](https://www.gov.uk/lifetime-isa) | primary |
+| Lifetime ISA: 20% withdrawal charge for a home above £450,000; none at or below; first payment ≥ 12 months before purchase | | [GOV.UK: withdrawing from a Lifetime ISA](https://www.gov.uk/lifetime-isa/withdrawing-money-from-your-lifetime-isa) | primary |
+| Lifetime ISA bonus credited one month after each payment | | not stated on GOV.UK | assumption |
+| ISA allowance 2026/27 | £20,000 | [GOV.UK: Individual Savings Accounts](https://www.gov.uk/individual-savings-accounts) | primary |
+| Cash ISA limit for under-65s from April 2027 | ignored | £12,000 legislated; Autumn Budget 2026 reportedly keeps £20,000; not confirmed on GOV.UK | assumption |
+| Default UK saver = NL default × 0.8338 GBP/EUR | £50,000 / £335,000 / £460 a month | [ECB reference rate](https://data-api.ecb.europa.eu/service/data/EXR/M.GBP.EUR.SP00.E?format=csvdata), end October 2026 | primary (rate); rounding is a choice |
+
+UK market data sources and hashes: [CALIBRATION_UK.md](CALIBRATION_UK.md), section 1.
+
 ## Saver inputs (user-chosen, not data)
 
 Income, contributions, house price, horizon, student debt, DUO rate and other

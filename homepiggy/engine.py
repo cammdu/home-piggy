@@ -18,6 +18,8 @@ from . import metrics as M
 from .affordability_nl import (
     AffordabilityResult, BuyerProfile, FinancingCostTable, affordability_gap, annuity_payment, load_policy,
 )
+from .affordability_de import FundTax, affordability_gap_de, load_policy_de
+from .affordability_uk import affordability_gap_uk, lisa_charge, lisa_flows, load_policy_uk
 from .config import STATE_VARS, MarketParams
 from .glidepath import GlidepathSpec, static_weights, target_vol_lambda
 from .market import MarketPaths, simulate_market
@@ -63,6 +65,19 @@ class SaverProfile:
         return self
 
 
+# Default UK saver = the Dutch default converted to pounds (user decision 2026-11-23), so the two countries
+# compare like for like. Rate: 0.8338 GBP per EUR, ECB reference rate, end of October 2026
+# (EXR.M.GBP.EUR.SP00.E). Rounded to the page's slider steps: income 50,028 -> 50,000; price 333,520 ->
+# 335,000; monthly 458.6 -> 460; initial 833.8 -> 834. Amount fields keep their *_eur names but hold pounds.
+GBP_PER_EUR_DEFAULTS = 0.8338
+UK_DEFAULT_SAVER = SaverProfile(initial_eur=834.0, monthly_contribution_eur=460.0, gross_income_eur=50_000.0,
+                                house_price_eur=335_000.0)
+
+
+def default_saver(country: str = "nl") -> SaverProfile:
+    return UK_DEFAULT_SAVER if country == "uk" else SaverProfile()
+
+
 @dataclass(frozen=True)
 class RunConfig:
     market: MarketParams
@@ -79,6 +94,8 @@ class RunConfig:
     cash_sleeve_box3_category: str = "other"   # fund money-market sleeve counts as 'other assets'
     benchmark_savings_spread: float = 0.0050   # bank savings rate = short rate - this (benchmark)
     policy_year: int = 2026
+    country: str = "nl"                        # "nl" (Dutch rules, box 3), "uk" (England, ISA wrappers) or "de"
+    lisa: bool = True                          # UK only: Lifetime ISA bonus and charge (docs/METHODS.md section 12)
 
 
 @dataclass
@@ -93,6 +110,9 @@ class Results:
     income: np.ndarray              # (P, T+1)
     price: np.ndarray               # (P, T+1)
     summary: dict[str, Any]
+    lisa_charge: np.ndarray | None = None        # (P,) UK: Lifetime ISA withdrawal charge taken at purchase
+    lisa_charge_bank: np.ndarray | None = None
+    exit_tax: np.ndarray | None = None           # (P,) DE: tax on selling the fund at purchase
 
 
 # --------------------------------------------------------------------------- random streams
@@ -144,6 +164,31 @@ def sleeve_covariances(market: MarketParams, product: ProductParams, n_paths: in
     return np.stack(out)
 
 
+# --------------------------------------------------------------------------- country rules
+def load_rules(cfg: RunConfig) -> tuple[dict[str, Any], FinancingCostTable | None]:
+    if cfg.country == "uk":
+        return load_policy_uk(cfg.policy_year), None
+    if cfg.country == "de":
+        return load_policy_de(cfg.policy_year), None
+    if cfg.country != "nl":
+        raise ValueError(f"Unknown country '{cfg.country}'.")
+    policy = load_policy(cfg.policy_year)
+    return policy, FinancingCostTable.load(policy)
+
+
+def afford(cfg: RunConfig, policy: dict[str, Any], table: FinancingCostTable | None, price: np.ndarray,
+           income: np.ndarray, mortgage_rate: np.ndarray, instalment: np.ndarray, age: float, cpi: np.ndarray,
+           house: np.ndarray, apply_income_test: bool) -> AffordabilityResult:
+    """Affordability gap under the configured country's rules."""
+    s = cfg.saver
+    if cfg.country == "uk":
+        return affordability_gap_uk(price, income, mortgage_rate, cpi, s.buyer, policy, apply_income_test)
+    if cfg.country == "de":
+        return affordability_gap_de(price, income, mortgage_rate, age, cpi, s.buyer, policy, apply_income_test)
+    return affordability_gap(price, income, mortgage_rate, instalment, age, cpi, house, s.buyer, policy, table,
+                             apply_income_test=apply_income_test)
+
+
 # --------------------------------------------------------------------------- main run
 def _income_index(m: MarketPaths, g: float) -> np.ndarray:
     t = np.arange(m.n_months + 1) / 12.0
@@ -178,8 +223,9 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
     if m.n_months != T:
         raise ValueError("market paths do not match the horizon.")
     P = m.n_paths
-    policy = load_policy(cfg.policy_year)
-    table = FinancingCostTable.load(policy)
+    policy, table = load_rules(cfg)
+    uk = cfg.country == "uk"
+    de = cfg.country == "de"
 
     # ---- saver cash flows, income, house price, student debt
     idx = _income_index(m, s.real_wage_growth)
@@ -193,14 +239,13 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
     required = np.empty((P, T + 1))
     target = np.empty((P, T + 1))
     for t in range(T + 1):
-        a = affordability_gap(price[:, t], income[:, t], m.mortgage_rate[:, t], np.full(P, instal[t]),
-                              s.buyer.age_at_start + t / 12.0, m.cpi[:, t], m.house_index[:, t],
-                              s.buyer, policy, table, apply_income_test=s.apply_income_test)
+        a = afford(cfg, policy, table, price[:, t], income[:, t], m.mortgage_rate[:, t], np.full(P, instal[t]),
+                   s.buyer.age_at_start + t / 12.0, m.cpi[:, t], m.house_index[:, t], s.apply_income_test)
         required[:, t] = a.required_deposit
         costs = a.transfer_tax + a.nhg_premium + a.other_costs
         target[:, t] = np.maximum(a.required_deposit, s.own_target_pct * price[:, t] + costs)
         if t == T:
-            afford = a
+            afford_T = a
 
     # ---- glidepath target function
     gp = cfg.glidepath
@@ -228,13 +273,26 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
         def target_fn(t: int, value: np.ndarray, reg: np.ndarray) -> np.ndarray:
             return np.repeat(W[t][None], P, axis=0)
 
-    box3 = Box3Params.from_policy(policy, partners=cfg.box3_partners, enabled=cfg.box3_enabled,
-                                  other_box3_assets=cfg.other_box3_assets_eur)
+    ft_fund = ft_bank = None
+    if uk:   # ISA wrappers: no tax on the pot; Lifetime ISA bonus invested alongside the saver's payments
+        box3 = Box3Params(tax_rate=0.0, allowance=0.0, f_bank=0.0, f_other=0.0, enabled=False)
+        lisa_pay, lisa_bonus = lisa_flows(contributions, s.buyer.age_at_start, policy, enabled=cfg.lisa)
+    elif de:  # German fund taxation (Vorabpauschale, partial exemption, exit tax); savings interest taxed yearly
+        box3 = Box3Params(tax_rate=0.0, allowance=0.0, f_bank=0.0, f_other=0.0, enabled=False)
+        lisa_pay = lisa_bonus = np.zeros_like(contributions)
+        ft_fund, ft_bank = FundTax.from_policy(policy, "fund"), FundTax.from_policy(policy, "interest")
+    else:
+        box3 = Box3Params.from_policy(policy, partners=cfg.box3_partners, enabled=cfg.box3_enabled,
+                                      other_box3_assets=cfg.other_box3_assets_eur)
+        lisa_pay = lisa_bonus = np.zeros_like(contributions)
+    invested = contributions + lisa_bonus
+    tracked = lisa_pay + lisa_bonus if uk else None
     rets = {"equity": equity_returns(m, prod), "short_bonds": bond_returns(m, prod),
             "cash": cash_returns(m, prod.cash_spread)}
     pe = ProtectedEquitySleeve(m, cfg.market, prod)
     cat = ("other", "other", "other", cfg.cash_sleeve_box3_category)
-    port = run_portfolio(rets, pe, target_fn, m.regimes, s.initial_eur, contributions, box3, cfg.rebalance, cat)
+    port = run_portfolio(rets, pe, target_fn, m.regimes, s.initial_eur, invested, box3, cfg.rebalance, cat,
+                         tracked=tracked, fund_tax=ft_fund)
     port.locked = locked_at.copy()
 
     # ---- benchmark: same contributions into a bank savings account (paired, same paths)
@@ -242,10 +300,27 @@ def run(cfg: RunConfig, market_paths: MarketPaths | None = None,
     bench_rets = {"equity": np.zeros_like(rets["cash"]), "short_bonds": np.zeros_like(rets["cash"]),
                   "cash": cash_returns(m, cfg.benchmark_savings_spread)}
     bench = run_portfolio(bench_rets, None, lambda t, v, r: np.repeat(cash_w[None], P, axis=0), m.regimes,
-                          s.initial_eur, contributions, box3, RebalancePolicy(transaction_cost=0.0),
-                          ("other", "other", "other", "bank"))
+                          s.initial_eur, invested, box3, RebalancePolicy(transaction_cost=0.0),
+                          ("other", "other", "other", "bank"), tracked=tracked, fund_tax=ft_bank)
 
-    res = Results(cfg, m, port, bench, afford, required, target, income, price, {})
+    charge = charge_b = None
+    if uk:   # the saver's own cash flows (for money-weighted returns) exclude the government bonus
+        charge = lisa_charge(port.tracked_share * port.value[:, -1], price[:, -1], policy)
+        charge_b = lisa_charge(bench.tracked_share * bench.value[:, -1], price[:, -1], policy)
+        port.value[:, -1] -= charge
+        bench.value[:, -1] -= charge_b
+        port.contributions[:, 1:] = contributions[:, 1:]
+        bench.contributions[:, 1:] = contributions[:, 1:]
+
+    exit_tax = None
+    if de:   # sale of all fund units at purchase (§ 19 InvStG with § 22 deemed-sale gains)
+        st = port.fund_tax_state
+        V = port.value[:, -1]
+        exit_tax = np.minimum(ft_fund.tax_on(st["seg"] + (V - st["basis"] - st["vp_cum"]) * (1.0 - st["tf"])), V)
+        port.value[:, -1] -= exit_tax
+        port.tax_paid[:, -1] += exit_tax
+
+    res = Results(cfg, m, port, bench, afford_T, required, target, income, price, {}, charge, charge_b, exit_tax)
     if summary:
         res.summary = summarise(res)
     return res

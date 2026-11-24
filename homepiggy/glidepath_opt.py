@@ -35,9 +35,8 @@ from typing import Any, Sequence
 import numpy as np
 
 from . import metrics as M
-from .affordability_nl import FinancingCostTable, affordability_gap, load_policy
 from .config import MarketParams
-from .engine import RunConfig, _student_instalment, run, simulate_market_paths
+from .engine import RunConfig, _student_instalment, afford, load_rules, run, simulate_market_paths
 from .glidepath import DEFAULT_TABLE, GlidepathSpec
 
 A_YEARS = (8, 7, 6, 5, 4)
@@ -108,15 +107,14 @@ def _evaluate_replicate(args: tuple[RunConfig, tuple[GlidepathSpec, ...]]) -> np
     m = simulate_market_paths(cfg)
     out = np.empty((len(specs) + 1, len(METRICS)))
     s, T = cfg.saver, m.n_months
-    policy = load_policy(cfg.policy_year)
-    table = FinancingCostTable.load(policy)
+    policy, table = load_rules(cfg)
     D_inc = None
     for i, g in enumerate(specs):
         r = run(replace(cfg, glidepath=g), market_paths=m, summary=False)
         if D_inc is None:     # own funds needed WITH the income test (measure 2), same paths
-            a = affordability_gap(r.price[:, -1], r.income[:, -1], m.mortgage_rate[:, -1],
-                                  np.full(m.n_paths, _student_instalment(s, T)[T]), s.buyer.age_at_start + T / 12,
-                                  m.cpi[:, -1], m.house_index[:, -1], s.buyer, policy, table, apply_income_test=True)
+            a = afford(cfg, policy, table, r.price[:, -1], r.income[:, -1], m.mortgage_rate[:, -1],
+                       np.full(m.n_paths, _student_instalment(s, T)[T]), s.buyer.age_at_start + T / 12,
+                       m.cpi[:, -1], m.house_index[:, -1], apply_income_test=True)
             D_inc = np.maximum(a.required_deposit,
                                s.own_target_pct * r.price[:, -1] + a.transfer_tax + a.nhg_premium + a.other_costs)
             house_pa = m.house_index[:, -1] ** (12.0 / T) - 1.0

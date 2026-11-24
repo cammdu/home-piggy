@@ -1,0 +1,46 @@
+{
+ "country": "uk",
+ "year": 2026,
+ "currency": "GBP",
+ "max_ltv": 0.95,
+ "lti": 4.5,
+ "sdlt": {
+  "upper": [
+   125000.0,
+   250000.0,
+   925000.0,
+   1500000.0,
+   1e+18
+  ],
+  "rates": [
+   0.0,
+   0.02,
+   0.05,
+   0.1,
+   0.12
+  ],
+  "ftb": {
+   "nil_rate_upper": 300000,
+   "reduced_rate": 0.05,
+   "reduced_rate_upper": 500000,
+   "max_price": 500000
+  }
+ },
+ "lisa": {
+  "annual_limit": 4000,
+  "bonus_rate": 0.25,
+  "open_age_min": 18,
+  "open_age_max_exclusive": 40,
+  "contribute_until_age_exclusive": 50,
+  "price_threshold": 450000,
+  "charge_above_threshold": 0.2
+ },
+ "isa_allowance": 20000,
+ "sources": {
+  "sdlt": "https://www.gov.uk/stamp-duty-land-tax/residential-property-rates",
+  "lisa": "https://www.gov.uk/lifetime-isa/withdrawing-money-from-your-lifetime-isa",
+  "lending_ltv": "https://www.gov.uk/government/publications/2025-mortgage-guarantee-scheme",
+  "lending_lti": "https://www.fca.org.uk/publications/finalised-guidance/fg26-11-high-loan-income-lending",
+  "isa": "https://www.gov.uk/individual-savings-accounts"
+ }
+}

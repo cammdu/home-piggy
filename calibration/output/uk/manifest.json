@@ -1,0 +1,158 @@
+{
+  "boe_iadb": {
+    "provider": "Bank of England Database",
+    "key": "IUMASOIA, IUDBEDR, IUMBV42",
+    "url": "https://www.bankofengland.co.uk/boeapps/database/_iadb-fromshowcolumns.asp?csv.x=yes&Datefrom=01/Jan/1990&Dateto=now&CSVF=TN&UsingCodes=Y&VPD=Y&VFD=N&SeriesCodes=IUMASOIA,IUDBEDR,IUMBV42",
+    "units": "% p.a.",
+    "description": "IUMASOIA: SONIA, monthly average. IUDBEDR: official Bank Rate, daily. IUMBV42: quoted household rate, 5-year fixed-rate mortgage, 75% loan-to-value, monthly. Downloaded manually in a browser.",
+    "licence_note": "Bank of England statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-23T16:30:29+00:00",
+    "retrieval": "manual browser download",
+    "sha256": "17a3eb9d22365884d14780021659f2081b6e3247cdfa0b891ecf4bbfb1fbd3f3",
+    "bytes": 187334
+  },
+  "gilt_curve": {
+    "provider": "Bank of England (yield curves)",
+    "key": "GLC nominal month-end spot curve, 2-year",
+    "url": "https://www.bankofengland.co.uk/-/media/boe/files/statistics/yield-curves/glcnominalmonthedata.zip",
+    "units": "% p.a.",
+    "description": "UK government nominal zero-coupon (spot) yield, 2-year maturity, month end (sheet '4. spot curve'). Downloaded manually in a browser.",
+    "licence_note": "Bank of England statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-23T16:30:29+00:00",
+    "retrieval": "manual browser download",
+    "sha256": "c45854fc77b749752572215cbb6385674d618461bf97bb4e6b476d9c3726a7f8",
+    "bytes": 2570135
+  },
+  "gbp_per_eur": {
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.GBP.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.GBP.EUR.SP00.E?format=csvdata",
+    "units": "GBP per EUR, end of period",
+    "description": "ECB reference rate GBP/EUR",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "219399ffb162d4fecaa543d6bd0a3271e7c03a6ef01be7781ea65970d994ce17",
+    "bytes": 72260
+  },
+  "cpi_uk_anr": {
+    "provider": "Office for National Statistics",
+    "key": "D7G7 (MM23)",
+    "url": "https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7g7/mm23/data",
+    "units": "% y/y",
+    "description": "CPI all items, annual rate (D7G7)",
+    "licence_note": "ONS: Open Government Licence v3.0",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "f7fef6130d7c366b8cae1715254c7c3113b2d6a496a2e89cc2313c3c3efc0520",
+    "bytes": 122922
+  },
+  "cpi_uk_idx": {
+    "provider": "Office for National Statistics",
+    "key": "D7BT (MM23)",
+    "url": "https://www.ons.gov.uk/economy/inflationandpriceindices/timeseries/d7bt/mm23/data",
+    "units": "index 2015=100",
+    "description": "CPI all items index (D7BT)",
+    "licence_note": "ONS: Open Government Licence v3.0",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "b94a93c0ace504a2f355e116a2887df04476bcf4cf355dc66d1706b34544c0b4",
+    "bytes": 126632
+  },
+  "gdp_uk": {
+    "provider": "Office for National Statistics",
+    "key": "IHYR (QNA)",
+    "url": "https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/ihyr/qna/data",
+    "units": "% y/y",
+    "description": "Real GDP, growth on the same quarter a year earlier, CVM SA (IHYR)",
+    "licence_note": "ONS: Open Government Licence v3.0",
+    "retrieved_utc": "2026-11-23T16:26:54+00:00",
+    "sha256": "f27836f79c56c5e8f3291a7df344971086784b770dee09c17b38496e8b0eee72",
+    "bytes": 50899
+  },
+  "unemp_uk": {
+    "provider": "Office for National Statistics",
+    "key": "MGSX (LMS)",
+    "url": "https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms/data",
+    "units": "% of labour force",
+    "description": "Unemployment rate, aged 16+, seasonally adjusted, rolling 3 months (MGSX)",
+    "licence_note": "ONS: Open Government Licence v3.0",
+    "retrieved_utc": "2026-11-23T16:26:55+00:00",
+    "sha256": "17dc5bae919c94f0cf44232766a9baecfef00db5ab9f58d1b4c52b62e14053ee",
+    "bytes": 175091
+  },
+  "ciss_uk": {
+    "provider": "ECB Data Portal",
+    "key": "CISS.D.GB.Z0Z.4F.EC.SS_CIN.IDX",
+    "url": "https://data-api.ecb.europa.eu/service/data/CISS/D.GB.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata",
+    "units": "index 0-1",
+    "description": "New Composite Indicator of Systemic Stress (CISS), United Kingdom, daily",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-23T16:27:19+00:00",
+    "sha256": "8ad335435e43d8caeab14fc259735cfb3fa4e43a9e33869c3ea1a7cde6eecd81",
+    "bytes": 3222229
+  },
+  "house_eng": {
+    "provider": "HM Land Registry (UK House Price Index)",
+    "key": "UKHPI England, all property types",
+    "url": "https://landregistry.data.gov.uk/app/ukhpi/download/new.csv?from=1995-01-01&to=2030-12-01&location=http%3A%2F%2Flandregistry.data.gov.uk%2Fid%2Fregion%2Fengland&thm%5B%5D=property_type&thm%5B%5D=buyer_status&in%5B%5D=hpi&in%5B%5D=avg",
+    "units": "index Jan 2023=100",
+    "description": "UK HPI, England, all property types, monthly from 1995-01",
+    "licence_note": "Open Government Licence v3.0 (contains HM Land Registry data, Crown copyright)",
+    "retrieved_utc": "2026-11-23T16:27:20+00:00",
+    "sha256": "ad0a27f47c467b9c3f3018349cc484dd47b2e71b13feddc2f76f8aa8a8367fbb",
+    "bytes": 66845
+  },
+  "usd_per_eur": {
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.USD.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.E?format=csvdata",
+    "units": "USD per EUR, end of period",
+    "description": "ECB reference rate USD/EUR",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-10T10:17:38+00:00",
+    "sha256": "dc98a9b6affd9589d0e6acfaf24b96456cb60f2fa7c2fbd652ab1a5fc1f71623",
+    "bytes": 68757
+  },
+  "ff_dev": {
+    "provider": "Kenneth R. French Data Library",
+    "key": "Developed_3_Factors",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip",
+    "units": "% per month, USD",
+    "description": "Developed markets factors: Mkt-RF and RF (value-weighted developed-market equity)",
+    "licence_note": "Free for research use; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:17:49+00:00",
+    "sha256": "3f99cfdeddd1914e3d8f84ce51d775aeed3e98ed0c290957e88f4df9912f8a23",
+    "bytes": 4975
+  },
+  "ff_us_daily": {
+    "provider": "Kenneth R. French Data Library",
+    "key": "F-F_Research_Data_Factors_daily",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip",
+    "units": "% per day, USD",
+    "description": "US market factor, daily (for realised volatility)",
+    "licence_note": "Free for research use; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:17:53+00:00",
+    "sha256": "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89",
+    "bytes": 178326
+  },
+  "vix": {
+    "provider": "FRED (St. Louis Fed), source Cboe",
+    "key": "VIXCLS",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+    "units": "% p.a. (implied vol)",
+    "description": "Cboe VIX index, daily close",
+    "licence_note": "Cboe data via FRED; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:17:56+00:00",
+    "sha256": "049654ab9cad9c14a587c843bb0e771d6a1610aa25a32b14100037f95ad2c4ad",
+    "bytes": 161884
+  },
+  "skew": {
+    "provider": "Cboe",
+    "key": "SKEW",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+    "units": "index; SKEW = 100 - 10 x (30-day risk-neutral skewness)",
+    "description": "Cboe SKEW index, daily",
+    "licence_note": "Cboe data; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:19:36+00:00",
+    "sha256": "6a70f2fd77d737f8b6be233bf10b81e61b35886816534b7deb0aacf9b347274c",
+    "bytes": 203862
+  }
+}
