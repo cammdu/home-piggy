@@ -1,6 +1,6 @@
 """Run the glidepath optimisation (homepiggy/glidepath_opt.py) with the pre-agreed selection rule.
 
-Usage: PYTHONPATH=. python studies/optimize_glidepath.py [--country nl|uk] [--paths 500] [--replicates 200] [--crisis-reps 40]
+Usage: PYTHONPATH=. python studies/optimize_glidepath.py [--country nl|uk|de] [--paths 500] [--replicates 200] [--crisis-reps 40]
 Output: studies/output/glidepath_opt.json (+ raw .npz per method); UK: glidepath_opt_uk.json / _uk_{method}.npz.
 UK default saver: engine.UK_DEFAULT_SAVER (the NL default in pounds), Lifetime ISA on, ISA wrappers (no tax).
 Default saver (engine.SaverProfile): EUR 60k income, EUR 400k house, EUR 550/month, 10y, deposit 10% + costs,

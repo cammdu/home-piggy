@@ -9,8 +9,9 @@ Model variables (German saver, euros):
   mortgage_rate  DE new loans for house purchase, initial fixation over 10 years (ECB MIR, from 2000-01)
   inflation      HICP Germany, annual rate (Eurostat)
   equity         developed-market equity total return in EUR (identical to NL)
-  house          QUARTERLY: log change of the Destatis house price index (61262-0001) over each quarter, stored at
-                 the quarter-end month; other months are NaN. The estimator treats the monthly latent growth as
+  house          QUARTERLY: log change of the Destatis house price index (Häuserpreisindex, 2025=100) as published
+                 by the ECB Data Portal (RESR.Q.DE._T.N._TR.TVAL.4D0.TB.N.IX, 2005 Q1 onwards; values identical to
+                 Destatis table 61262-0002), over each quarter, stored at the quarter-end month; other months are NaN. The estimator treats the monthly latent growth as
                  unobserved and fits it to these quarterly changes (estimate._house_kalman_q).
 
 Regime indicators (Germany, point-in-time; publication lags as for NL):
@@ -29,9 +30,9 @@ import numpy as np
 
 from .dataset import (EONIA_ESTR_SPREAD, EONIA_ESTR_SOURCE, Panel, _align, _forward_fill, _monthly_mean, _months,
                       _pit_deseasonalise, _step_month_end, _to_month)
-from .sources import fetch, parse_bbk, parse_cboe, parse_ecb, parse_eurostat, parse_fred, parse_french_monthly
+from .sources import fetch, parse_bbk, parse_cboe, parse_ecb, parse_ecb_quarterly, parse_eurostat, parse_fred, parse_french_monthly
 
-DE_SERIES = ("house_de", "house_de_ecb", "mortgage_de", "hicp_de_anr", "hicp_de_idx", "unemp_de", "gdp_de", "ciss_de")
+DE_SERIES = ("house_de_ecb", "mortgage_de", "hicp_de_anr", "hicp_de_idx", "unemp_de", "gdp_de", "ciss_de")
 SHARED_SERIES_DE = ("eonia", "estr", "dfr", "y2_de", "usd_per_eur", "ff_dev", "ff_us_daily", "vix", "skew")
 
 
@@ -42,6 +43,11 @@ def parse_destatis_hpi(body: bytes) -> tuple[np.ndarray, np.ndarray]:
     the 'insgesamt' (total) series when several are present, and reads German decimal commas.
     """
     text = body.decode("utf-8-sig", "replace")
+    if "Quartal" in text and "\ufffd" in text:
+        text = body.decode("latin-1")
+    wide = _parse_destatis_wide(text)
+    if wide is not None:
+        return wide
     if text.count(";") < text.count(","):
         delim = ","
     else:
@@ -81,10 +87,40 @@ def parse_destatis_hpi(body: bytes) -> tuple[np.ndarray, np.ndarray]:
     return d, np.array([out[k] for k in d])
 
 
+def _parse_destatis_wide(text: str):
+    """GENESIS table layout: a row of years, a row of 'n. Quartal' labels, then one row per series with
+    (value, quality flag) pairs. Takes the first series row (Häuserpreisindex, total). Missing values ('...')
+    are skipped. Returns None if the layout is not this one."""
+    rows = [[c.strip() for c in r] for r in csv.reader(io.StringIO(text), delimiter=";")]
+    yr = next((r for r in rows if sum(c.isdigit() and len(c) == 4 for c in r) >= 2), None)
+    qr = next((r for r in rows if sum("Quartal" in c for c in r) >= 2), None)
+    if yr is None or qr is None:
+        return None
+    data = next((r for r in rows if len(r) > 2 and r[0] and not r[0].startswith(" ") and "=" in r[1]
+                 and r is not yr and r is not qr), None)
+    if data is None:
+        return None
+    out = {}
+    for j, (y, q) in enumerate(zip(yr, qr)):
+        if not (y.isdigit() and "Quartal" in q) or j >= len(data) or (j > 0 and yr[j - 1] == y and qr[j - 1] == q):
+            continue
+        v = data[j].replace(".", "").replace(",", ".")
+        try:
+            x = float(v)
+        except ValueError:
+            continue
+        n = int(q.split(".")[0])
+        out[f"{y}-{n * 3:02d}"] = x
+    if len(out) < 4:
+        return None
+    d = np.array(sorted(out))
+    return d, np.array([out[k] for k in d])
+
+
 def build_panel_de(start: str = "1996-01", end: str | None = None) -> Panel:
     get = lambda n, p: p(fetch(n)[0])                               # noqa: E731
 
-    hd, hv = get("house_de", parse_destatis_hpi)
+    hd, hv = get("house_de_ecb", parse_ecb_quarterly)
     end = end or str(_to_month(hd)[-1])
     months = _months(start, end)
     P = Panel(months)
@@ -157,5 +193,5 @@ def build_panel_de(start: str = "1996-01", end: str | None = None) -> Panel:
     km, kmv = _monthly_mean(kd, kv)
     P.aux["cboe_skew"] = _align(months, km, kmv)
     P.notes.append(f"EONIA converted to €STR basis by subtracting {EONIA_ESTR_SPREAD*1e4:.1f} bp ({EONIA_ESTR_SOURCE}).")
-    P.notes.append("House prices are quarterly (Destatis); monthly latent growth is estimated by temporal aggregation.")
+    P.notes.append("House prices are quarterly (Destatis via ECB, from 2005 Q1); monthly latent growth is estimated by temporal aggregation.")
     return P

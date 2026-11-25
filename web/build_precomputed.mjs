@@ -1,9 +1,9 @@
 // Precompute the default saver's results so the page is complete before any computation runs.
 // Uses exactly the functions and run sizes the page uses (model.js CONFIG), so the live
 // recomputation for the same inputs returns the same numbers.
-// Usage: node web/build_precomputed.mjs [nl|uk]
+// Usage: node web/build_precomputed.mjs [nl|uk|de]
 import { readFileSync, writeFileSync } from "node:fs";
-import { DEFAULT_SAVER, UK_DEFAULT_SAVER } from "./engine.js";
+import { DEFAULT_SAVER, UK_DEFAULT_SAVER, DE_DEFAULT_SAVER } from "./engine.js";
 import { CONFIG, subset, replicateSummary, band, detail, stress, bufferPayoff } from "./model.js";
 
 const country = process.argv[2] || "nl";
@@ -11,7 +11,7 @@ const dir = new URL(`./data/${country}/`, import.meta.url);
 const read = (f) => JSON.parse(readFileSync(new URL(f, dir)));
 const policy = read("policy_2026.json"), events = read("scenarios.json").events, gp = read("glidepaths.json");
 const optTable = gp.optimised.table;
-const saver = { ...(country === "uk" ? UK_DEFAULT_SAVER : DEFAULT_SAVER) };
+const saver = { ...(country === "uk" ? UK_DEFAULT_SAVER : country === "de" ? DE_DEFAULT_SAVER : DEFAULT_SAVER) };
 const out = { country, saver, config: CONFIG, glidepaths: gp, methods: {} };
 function build(sv, label) {
   const res = {};

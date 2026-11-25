@@ -1,0 +1,178 @@
+{
+  "house_de_ecb": {
+    "provider": "ECB Data Portal",
+    "key": "RESR.Q.DE._T.N._TR.TVAL.4D0.TB.N.IX",
+    "url": "https://data-api.ecb.europa.eu/service/data/RESR/Q.DE._T.N._TR.TVAL.4D0.TB.N.IX?format=csvdata",
+    "units": "index",
+    "description": "House price index, total, Germany (Destatis, via ECB), quarterly from 2005 (cross-check)",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T15:48:48+00:00",
+    "sha256": "52bea7d195056f4c620fad2c7f2819b8ea558d63c37320c96243a9da60582207",
+    "bytes": 29197
+  },
+  "mortgage_de": {
+    "provider": "ECB Data Portal",
+    "key": "MIR.M.DE.B.A2C.P.R.A.2250.EUR.N",
+    "url": "https://data-api.ecb.europa.eu/service/data/MIR/M.DE.B.A2C.P.R.A.2250.EUR.N?format=csvdata",
+    "units": "% p.a.",
+    "description": "DE bank rates, new loans to households for house purchase, initial rate fixation over 10 years",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T07:48:53+00:00",
+    "sha256": "e269aa12216ba26134acfa044c2a115da063a5401309b610849e823d550f7b20",
+    "bytes": 213821
+  },
+  "hicp_de_anr": {
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=RCH_A",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=RCH_A",
+    "units": "% y/y",
+    "description": "HICP (ECOICOP ver.2) all items, Germany, annual rate of change",
+    "licence_note": "Eurostat: reuse permitted with source attribution (Commission Decision 2011/833/EU)",
+    "retrieved_utc": "2026-11-24T07:48:53+00:00",
+    "sha256": "d79fe8226989d450c00813eeb987681069cd38cca4cdd8e9b0dd8e670092ae7f",
+    "bytes": 20409
+  },
+  "hicp_de_idx": {
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=I15",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=I15",
+    "units": "index 2015=100",
+    "description": "HICP (ECOICOP ver.2) all items, Germany, index",
+    "licence_note": "Eurostat: reuse permitted with source attribution (Commission Decision 2011/833/EU)",
+    "retrieved_utc": "2026-11-24T07:48:54+00:00",
+    "sha256": "281f9b53d774f2ce7d90bc4c09a0fe05af360e8c290fb85fc6a3688f15a956fe",
+    "bytes": 21327
+  },
+  "unemp_de": {
+    "provider": "Eurostat",
+    "key": "une_rt_m?geo=DE&s_adj=SA&age=TOTAL&sex=T&unit=PC_ACT",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?geo=DE&s_adj=SA&age=TOTAL&sex=T&unit=PC_ACT",
+    "units": "% of labour force",
+    "description": "Unemployment rate, Germany, total, seasonally adjusted, monthly",
+    "licence_note": "Eurostat: reuse permitted with source attribution (Commission Decision 2011/833/EU)",
+    "retrieved_utc": "2026-11-24T07:48:54+00:00",
+    "sha256": "a277f4797ee012208b3eb8d8e7edffb82def37c0c9f22884bdd5083ec5edb125",
+    "bytes": 26054
+  },
+  "gdp_de": {
+    "provider": "Eurostat",
+    "key": "namq_10_gdp?geo=DE&s_adj=SCA&unit=CLV_PCH_SM&na_item=B1GQ",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/namq_10_gdp?geo=DE&s_adj=SCA&unit=CLV_PCH_SM&na_item=B1GQ",
+    "units": "% y/y",
+    "description": "Real GDP, Germany, chain-linked volumes, change on the same quarter of the previous year",
+    "licence_note": "Eurostat: reuse permitted with source attribution (Commission Decision 2011/833/EU)",
+    "retrieved_utc": "2026-11-24T07:48:55+00:00",
+    "sha256": "fb2d6d403c2d1cedeaa6107b8adb5a1dfcf738ab810f97fc00214684b18645b1",
+    "bytes": 11329
+  },
+  "ciss_de": {
+    "provider": "ECB Data Portal",
+    "key": "CISS.D.DE.Z0Z.4F.EC.SS_CIN.IDX",
+    "url": "https://data-api.ecb.europa.eu/service/data/CISS/D.DE.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata",
+    "units": "index 0-1",
+    "description": "New Composite Indicator of Systemic Stress (CISS), Germany, daily",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T07:48:57+00:00",
+    "sha256": "c6523bb70e60a77f1ed6ea8b7f614a5c31234471804c2e100e8deab3c5425a40",
+    "bytes": 3136799
+  },
+  "eonia": {
+    "provider": "ECB Data Portal",
+    "key": "FM.M.U2.EUR.4F.MM.EONIA.HSTA",
+    "url": "https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.4F.MM.EONIA.HSTA?format=csvdata",
+    "units": "% p.a., monthly average",
+    "description": "EONIA (euro overnight index average), 1999-01 to 2022-01",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T07:54:31+00:00",
+    "sha256": "1bf3914b3e53468eccb2618391f904b62e3daa3fa5394e51490a42288811eeb3",
+    "bytes": 114727
+  },
+  "estr": {
+    "provider": "ECB Data Portal",
+    "key": "EST.B.EU000A2X2A25.WT",
+    "url": "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?format=csvdata",
+    "units": "% p.a.",
+    "description": "Euro short-term rate (\u20acSTR), from 2019-10",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T07:54:40+00:00",
+    "sha256": "6d948d22a80a08a072e34a52813045cc938a1770c615db647ee06498aede665d",
+    "bytes": 568475
+  },
+  "dfr": {
+    "provider": "ECB Data Portal",
+    "key": "FM.D.U2.EUR.4F.KR.DFR.LEV",
+    "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?format=csvdata",
+    "units": "% p.a.",
+    "description": "ECB deposit facility rate (date of changes)",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T07:54:45+00:00",
+    "sha256": "21355ecce2aa48dae55645356965e3e44cda85ac8fe8db8a5b5efab1012643ac",
+    "bytes": 3026462
+  },
+  "y2_de": {
+    "provider": "Deutsche Bundesbank",
+    "key": "BBSIS.M.I.ZST.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A",
+    "url": "https://api.statistiken.bundesbank.de/rest/data/BBSIS/M.I.ZST.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A?format=csv&lang=en",
+    "units": "% p.a.",
+    "description": "German federal securities, 2-year residual maturity, zero-coupon yield (term structure), monthly average",
+    "licence_note": "Bundesbank statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-24T07:54:41+00:00",
+    "sha256": "28df21668cc2683bdbd6bc328108358d3368e9506ab37bee20c5b15d0301d902",
+    "bytes": 9593
+  },
+  "usd_per_eur": {
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.USD.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.E?format=csvdata",
+    "units": "USD per EUR, end of period",
+    "description": "ECB reference rate USD/EUR",
+    "licence_note": "ECB statistics: reuse permitted with source attribution",
+    "retrieved_utc": "2026-11-10T10:17:38+00:00",
+    "sha256": "dc98a9b6affd9589d0e6acfaf24b96456cb60f2fa7c2fbd652ab1a5fc1f71623",
+    "bytes": 68757
+  },
+  "ff_dev": {
+    "provider": "Kenneth R. French Data Library",
+    "key": "Developed_3_Factors",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip",
+    "units": "% per month, USD",
+    "description": "Developed markets factors: Mkt-RF and RF (value-weighted developed-market equity)",
+    "licence_note": "Free for research use; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:17:49+00:00",
+    "sha256": "3f99cfdeddd1914e3d8f84ce51d775aeed3e98ed0c290957e88f4df9912f8a23",
+    "bytes": 4975
+  },
+  "ff_us_daily": {
+    "provider": "Kenneth R. French Data Library",
+    "key": "F-F_Research_Data_Factors_daily",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip",
+    "units": "% per day, USD",
+    "description": "US market factor, daily (for realised volatility)",
+    "licence_note": "Free for research use; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:17:53+00:00",
+    "sha256": "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89",
+    "bytes": 178326
+  },
+  "vix": {
+    "provider": "FRED (St. Louis Fed), source Cboe",
+    "key": "VIXCLS",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+    "units": "% p.a. (implied vol)",
+    "description": "Cboe VIX index, daily close",
+    "licence_note": "Cboe data via FRED; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:17:56+00:00",
+    "sha256": "049654ab9cad9c14a587c843bb0e771d6a1610aa25a32b14100037f95ad2c4ad",
+    "bytes": 161884
+  },
+  "skew": {
+    "provider": "Cboe",
+    "key": "SKEW",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+    "units": "index; SKEW = 100 - 10 x (30-day risk-neutral skewness)",
+    "description": "Cboe SKEW index, daily",
+    "licence_note": "Cboe data; not redistributed here",
+    "retrieved_utc": "2026-11-10T10:19:36+00:00",
+    "sha256": "6a70f2fd77d737f8b6be233bf10b81e61b35886816534b7deb0aacf9b347274c",
+    "bytes": 203862
+  }
+}

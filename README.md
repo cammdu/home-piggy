@@ -5,7 +5,7 @@ A glidepath fund model for first-time home buyers aged about 20, who invest
 protected equity (put-spread buffer) → short-dated bonds → cash** as the
 purchase date approaches.
 
-The Netherlands and the UK (England) are built; Germany is planned. The model is
+The Netherlands, the UK (England) and Germany are built. The model is
 **numbers only**: every result comes from deterministic code and sourced
 data, with no LLM or discretionary judgement in any calculation.
 
@@ -35,9 +35,10 @@ separately.
 | 3. Streamlit app (analysis) | done (this branch) |
 | 4. Browser app (pitch): FirstHome landing page, NL and UK pages | done |
 | 5. UK (England): UK calibration, England rules, ISA / Lifetime ISA, UK glidepath study | done |
+| 6. Germany: German calibration (house prices quarterly), 2026 rules by Land, investment-fund tax, German glidepath study | done |
 
-Calibrated parameters live in `params/` (`nl_*` and `uk_*`: `*_calibrated*.yaml`,
-`*_bootstrap*.json`, `*_scenarios.json`); UK details in [docs/CALIBRATION_UK.md](docs/CALIBRATION_UK.md). Results must be read as **bands across the bootstrap
+Calibrated parameters live in `params/` (`nl_*`, `uk_*` and `de_*`: `*_calibrated*.yaml`,
+`*_bootstrap*.json`, `*_scenarios.json`); UK and German details in [docs/CALIBRATION_UK.md](docs/CALIBRATION_UK.md) and [docs/CALIBRATION_DE.md](docs/CALIBRATION_DE.md). Results must be read as **bands across the bootstrap
 replicates** (see `homepiggy/uncertainty.py`). Before using any number, read
 **[docs/LIMITATIONS.md](docs/LIMITATIONS.md)**.
 
@@ -57,7 +58,8 @@ homepiggy/
   engine.py            run(), compare() on common random numbers
   uncertainty.py       option-C bands across bootstrap parameter sets
   analysis.py          parallel band studies + path detail for the apps
-  data/nl/             sourced 2026 policy data
+  affordability_de.py  German net income, loan limit, costs by Land, investment-fund tax (2026)
+  data/nl/, data/uk/, data/de/  sourced 2026 policy data
 docs/METHODS.md        every method, equation, assumption and deviation
 docs/SOURCES.md        every data source and its verification level
 docs/CALIBRATION.md    estimates, validation, scenarios (generated from outputs)
@@ -123,9 +125,9 @@ MIT. Some methods are adapted from
 ## Pitch app (browser)
 
 `web/` is a static page (FirstHome) that runs the model in the browser (`web/engine.js`, a line-by-line port
-of the Python engine, checked by `tests/test_web_parity.py` for both countries). It opens on a landing page;
-`#nl` and `#uk` show the country pages. Data: `python tools/export_web_data.py --country nl|uk` (writes
-`web/data/<country>/`); default results: `node web/build_precomputed.mjs nl|uk`. Preview locally with
+of the Python engine, checked by `tests/test_web_parity.py` for all three countries). It opens on a landing page;
+`#nl`, `#uk` and `#de` show the country pages. Data: `python tools/export_web_data.py --country nl|uk|de` (writes
+`web/data/<country>/`); default results: `node web/build_precomputed.mjs nl|uk|de`. Preview locally with
 `python tools/serve_web.py 18766`. UK calibration: `python -m calibration.calibrate --country uk` (two Bank of
 England files must first be downloaded by hand; see `calibration/sources.py`).
-The glidepath it shows comes from `studies/optimize_glidepath.py` (see docs/STUDY_GLIDEPATH_OPT.md).
+The glidepath it shows comes from `studies/optimize_glidepath.py` (see docs/STUDY_GLIDEPATH_OPT.md, _UK.md and _DE.md). German calibration: `python -m calibration.calibrate --country de` (house prices from the ECB copy of the Destatis index, from 2005).

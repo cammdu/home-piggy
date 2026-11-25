@@ -41,7 +41,8 @@ TENOR_1Y = 1.0
 COUNTRIES = {
     "nl": {"panel": build_panel, "out": OUT, "series": tuple(REGISTRY), "events": EVENTS},
     "uk": {"panel": build_panel_uk, "out": OUT / "uk", "series": UK_SERIES + SHARED_SERIES, "events": EVENTS_UK},
-    "de": {"panel": build_panel_de, "out": OUT / "de", "series": DE_SERIES + SHARED_SERIES_DE, "events": EVENTS_DE},
+    "de": {"panel": build_panel_de, "out": OUT / "de", "series": DE_SERIES + SHARED_SERIES_DE, "events": EVENTS_DE,
+           "no_exit_prior": True},
 }
 
 
@@ -172,7 +173,8 @@ def main(replicates: int = 200, seed: int = 20261110, country: str = "nl") -> di
     for method, labs, init_p, suffix in (("repo_classifier", lab, probs[last], ""),
                                          ("hmm", hmm_lab, hmm_init, "_hmm")):
         variants[method] = _variant(method, suffix, rows, labs, init_p, initial, iv, aux, replicates, seed,
-                                    sources, stamp, sample, sm, prefix=country, house_freq=house_freq)
+                                    sources, stamp, sample, sm, prefix=country, house_freq=house_freq,
+                                    no_exit_prior=COUNTRIES[country].get("no_exit_prior", False))
         variants[method]["report"]["validation"] = {
             "one_step_pit": pit_checks(rows, labs, variants[method]["ref"], variants[method]["house_z"]),
             "ten_year_coverage": ten_year_coverage(rows_raw, labs, variants[method]["ref"]),
@@ -210,9 +212,10 @@ def main(replicates: int = 200, seed: int = 20261110, country: str = "nl") -> di
 
 
 def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates, seed, sources, stamp, sample, sm,
-             prefix="nl", house_freq="M"):
+             prefix="nl", house_freq="M", no_exit_prior=False):
     vp = np.ones(len(sm), dtype=bool); vp[0] = False
-    full = estimate(rows, lab, vp, REGIMES, house_freq=house_freq)
+    full = estimate(rows, lab, vp, REGIMES, house_freq=house_freq, no_exit_prior=no_exit_prior)
+    n_prior_reps = 0
     ref = assemble(full.params, initial, init_probs, iv)
     market_params_from_dict(ref)        # fail closed if anything is out of range
 
@@ -230,7 +233,8 @@ def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates
     for b in range(replicates):
         idx, valid = stationary_indices(len(sm), L, rng)
         e = estimate({k: v[idx] for k, v in rows.items()}, lab[idx], valid, REGIMES, fallback=full.params,
-                     house_freq=house_freq)
+                     house_freq=house_freq, no_exit_prior=no_exit_prior)
+        n_prior_reps += bool(e.diagnostics.get("no_exit_prior_rows"))
         vv = aux["vix_var"][idx][:-1]                 # implied variance in month j
         rv_next = aux["realised_var"][idx][1:]        # realised variance in month j+1 (true successor only)
         ok = valid[1:] & ~np.isnan(vv) & ~np.isnan(rv_next)
@@ -280,6 +284,8 @@ def _variant(method, suffix, rows, lab, init_probs, initial, iv, aux, replicates
         "bootstrap": {"replicates": len(reps), "block_lengths": block, "mean_block_length": L,
                       "fallback_frequency": {k: v / len(reps) for k, v in sorted(fb_counts.items())},
                       "replicates_with_any_fallback": sum(1 for f in fallback_log if f) / len(reps),
+                      "no_exit_prior": {"on": no_exit_prior, "full_sample_rows": full.diagnostics["no_exit_prior_rows"],
+                                        "replicate_share": n_prior_reps / max(replicates, 1)},
                       "param_percentiles": _param_percentiles(reps)},
     }
     report["house_state_space"] = {k: v for k, v in full.diagnostics["house_state_space"].items()}

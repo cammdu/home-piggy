@@ -1,0 +1,618 @@
+{
+ "provenance": {
+  "description": "Historical-replay episodes measured from the calibration data; windows found algorithmically; shocks = observed move minus the calibrated model's expected path.",
+  "calibrated_utc": "2026-11-24T15:56:18+00:00",
+  "sources": [
+   {
+    "name": "house_de_ecb",
+    "provider": "ECB Data Portal",
+    "key": "RESR.Q.DE._T.N._TR.TVAL.4D0.TB.N.IX",
+    "url": "https://data-api.ecb.europa.eu/service/data/RESR/Q.DE._T.N._TR.TVAL.4D0.TB.N.IX?format=csvdata",
+    "retrieved_utc": "2026-11-24T15:48:48+00:00",
+    "sha256": "52bea7d195056f4c620fad2c7f2819b8ea558d63c37320c96243a9da60582207"
+   },
+   {
+    "name": "mortgage_de",
+    "provider": "ECB Data Portal",
+    "key": "MIR.M.DE.B.A2C.P.R.A.2250.EUR.N",
+    "url": "https://data-api.ecb.europa.eu/service/data/MIR/M.DE.B.A2C.P.R.A.2250.EUR.N?format=csvdata",
+    "retrieved_utc": "2026-11-24T07:48:53+00:00",
+    "sha256": "e269aa12216ba26134acfa044c2a115da063a5401309b610849e823d550f7b20"
+   },
+   {
+    "name": "hicp_de_anr",
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=RCH_A",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=RCH_A",
+    "retrieved_utc": "2026-11-24T07:48:53+00:00",
+    "sha256": "d79fe8226989d450c00813eeb987681069cd38cca4cdd8e9b0dd8e670092ae7f"
+   },
+   {
+    "name": "hicp_de_idx",
+    "provider": "Eurostat",
+    "key": "prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=I15",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=I15",
+    "retrieved_utc": "2026-11-24T07:48:54+00:00",
+    "sha256": "281f9b53d774f2ce7d90bc4c09a0fe05af360e8c290fb85fc6a3688f15a956fe"
+   },
+   {
+    "name": "unemp_de",
+    "provider": "Eurostat",
+    "key": "une_rt_m?geo=DE&s_adj=SA&age=TOTAL&sex=T&unit=PC_ACT",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/une_rt_m?geo=DE&s_adj=SA&age=TOTAL&sex=T&unit=PC_ACT",
+    "retrieved_utc": "2026-11-24T07:48:54+00:00",
+    "sha256": "a277f4797ee012208b3eb8d8e7edffb82def37c0c9f22884bdd5083ec5edb125"
+   },
+   {
+    "name": "gdp_de",
+    "provider": "Eurostat",
+    "key": "namq_10_gdp?geo=DE&s_adj=SCA&unit=CLV_PCH_SM&na_item=B1GQ",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/namq_10_gdp?geo=DE&s_adj=SCA&unit=CLV_PCH_SM&na_item=B1GQ",
+    "retrieved_utc": "2026-11-24T07:48:55+00:00",
+    "sha256": "fb2d6d403c2d1cedeaa6107b8adb5a1dfcf738ab810f97fc00214684b18645b1"
+   },
+   {
+    "name": "ciss_de",
+    "provider": "ECB Data Portal",
+    "key": "CISS.D.DE.Z0Z.4F.EC.SS_CIN.IDX",
+    "url": "https://data-api.ecb.europa.eu/service/data/CISS/D.DE.Z0Z.4F.EC.SS_CIN.IDX?format=csvdata",
+    "retrieved_utc": "2026-11-24T07:48:57+00:00",
+    "sha256": "c6523bb70e60a77f1ed6ea8b7f614a5c31234471804c2e100e8deab3c5425a40"
+   },
+   {
+    "name": "eonia",
+    "provider": "ECB Data Portal",
+    "key": "FM.M.U2.EUR.4F.MM.EONIA.HSTA",
+    "url": "https://data-api.ecb.europa.eu/service/data/FM/M.U2.EUR.4F.MM.EONIA.HSTA?format=csvdata",
+    "retrieved_utc": "2026-11-24T07:54:31+00:00",
+    "sha256": "1bf3914b3e53468eccb2618391f904b62e3daa3fa5394e51490a42288811eeb3"
+   },
+   {
+    "name": "estr",
+    "provider": "ECB Data Portal",
+    "key": "EST.B.EU000A2X2A25.WT",
+    "url": "https://data-api.ecb.europa.eu/service/data/EST/B.EU000A2X2A25.WT?format=csvdata",
+    "retrieved_utc": "2026-11-24T07:54:40+00:00",
+    "sha256": "6d948d22a80a08a072e34a52813045cc938a1770c615db647ee06498aede665d"
+   },
+   {
+    "name": "dfr",
+    "provider": "ECB Data Portal",
+    "key": "FM.D.U2.EUR.4F.KR.DFR.LEV",
+    "url": "https://data-api.ecb.europa.eu/service/data/FM/D.U2.EUR.4F.KR.DFR.LEV?format=csvdata",
+    "retrieved_utc": "2026-11-24T07:54:45+00:00",
+    "sha256": "21355ecce2aa48dae55645356965e3e44cda85ac8fe8db8a5b5efab1012643ac"
+   },
+   {
+    "name": "y2_de",
+    "provider": "Deutsche Bundesbank",
+    "key": "BBSIS.M.I.ZST.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A",
+    "url": "https://api.statistiken.bundesbank.de/rest/data/BBSIS/M.I.ZST.ZI.EUR.S1311.B.A604.R02XX.R.A.A._Z._Z.A?format=csv&lang=en",
+    "retrieved_utc": "2026-11-24T07:54:41+00:00",
+    "sha256": "28df21668cc2683bdbd6bc328108358d3368e9506ab37bee20c5b15d0301d902"
+   },
+   {
+    "name": "usd_per_eur",
+    "provider": "ECB Data Portal",
+    "key": "EXR.M.USD.EUR.SP00.E",
+    "url": "https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.E?format=csvdata",
+    "retrieved_utc": "2026-11-10T10:17:38+00:00",
+    "sha256": "dc98a9b6affd9589d0e6acfaf24b96456cb60f2fa7c2fbd652ab1a5fc1f71623"
+   },
+   {
+    "name": "ff_dev",
+    "provider": "Kenneth R. French Data Library",
+    "key": "Developed_3_Factors",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/Developed_3_Factors_CSV.zip",
+    "retrieved_utc": "2026-11-10T10:17:49+00:00",
+    "sha256": "3f99cfdeddd1914e3d8f84ce51d775aeed3e98ed0c290957e88f4df9912f8a23"
+   },
+   {
+    "name": "ff_us_daily",
+    "provider": "Kenneth R. French Data Library",
+    "key": "F-F_Research_Data_Factors_daily",
+    "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_daily_CSV.zip",
+    "retrieved_utc": "2026-11-10T10:17:53+00:00",
+    "sha256": "96c23b88e651cbfff3740a53f8225e59ee39893371e96385a1d8125ec2cd9c89"
+   },
+   {
+    "name": "vix",
+    "provider": "FRED (St. Louis Fed), source Cboe",
+    "key": "VIXCLS",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+    "retrieved_utc": "2026-11-10T10:17:56+00:00",
+    "sha256": "049654ab9cad9c14a587c843bb0e771d6a1610aa25a32b14100037f95ad2c4ad"
+   },
+   {
+    "name": "skew",
+    "provider": "Cboe",
+    "key": "SKEW",
+    "url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+    "retrieved_utc": "2026-11-10T10:19:36+00:00",
+    "sha256": "6a70f2fd77d737f8b6be233bf10b81e61b35886816534b7deb0aacf9b347274c"
+   }
+  ]
+ },
+ "events": {
+  "repo_classifier": [
+   {
+    "name": "gfc_2008",
+    "description": "Global financial crisis: equity peak-to-trough",
+    "window": [
+     "2007-05",
+     "2009-02"
+    ],
+    "duration_months": 21,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.6126919113736979,
+     "house_log": 0.003378415140255029,
+     "short_rate": -0.025849228289160794,
+     "term_spread": 0.009337065656261558,
+     "mortgage_rate": -0.0008035884191238892,
+     "inflation": -0.030372336278081148
+    },
+    "observed_change": {
+     "equity_log": -0.6566372875426674,
+     "house_log": 0.022642476749759752,
+     "short_rate": -0.025333545454545442,
+     "term_spread": -0.0048664545454545505,
+     "mortgage_rate": -0.0024999999999999953,
+     "inflation": -0.009
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2007-01",
+      "2009-12"
+     ]
+    }
+   },
+   {
+    "name": "euro_crisis_2011",
+    "description": "Euro sovereign debt crisis: equity peak-to-trough",
+    "window": [
+     "2011-02",
+     "2011-09"
+    ],
+    "duration_months": 7,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Expansion",
+     "Late-cycle"
+    ],
+    "shocks": {
+     "equity_log": -0.19402913197085983,
+     "house_log": 0.022252312724595838,
+     "short_rate": 0.0015168167298587308,
+     "term_spread": -0.009254677118144547,
+     "mortgage_rate": -0.0033236225154295264,
+     "inflation": 0.0030553718600728197
+    },
+    "observed_change": {
+     "equity_log": -0.16704239090127093,
+     "house_log": 0.03584613177313566,
+     "short_rate": 0.002983545454545454,
+     "term_spread": -0.011883545454545456,
+     "mortgage_rate": -0.003700000000000002,
+     "inflation": 0.005999999999999995
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2011-01",
+      "2012-12"
+     ]
+    }
+   },
+   {
+    "name": "covid_2020",
+    "description": "COVID-19 crash: equity peak-to-trough",
+    "window": [
+     "2020-01",
+     "2020-03"
+    ],
+    "duration_months": 2,
+    "regime_path": [
+     "Expansion",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.24305417944310964,
+     "house_log": 0.0018937175968404586,
+     "short_rate": -0.0002095457176292535,
+     "term_spread": -0.0008184636635489948,
+     "mortgage_rate": -0.0018286808307687848,
+     "inflation": -0.0045472436105186516
+    },
+    "observed_change": {
+     "equity_log": -0.22599450449420727,
+     "house_log": 0.008022965670999244,
+     "short_rate": 3.863636363636482e-05,
+     "term_spread": -0.0002386363636363636,
+     "mortgage_rate": -0.0017000000000000019,
+     "inflation": -0.004
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2020-01",
+      "2020-12"
+     ]
+    }
+   },
+   {
+    "name": "rate_shock_2022",
+    "description": "2022 rate shock: largest 12-month rise in German mortgage rates",
+    "window": [
+     "2021-11",
+     "2022-11"
+    ],
+    "duration_months": 12,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Late-cycle"
+    ],
+    "shocks": {
+     "equity_log": -0.02673521247891079,
+     "house_log": 0.03429784862065083,
+     "short_rate": 0.014601599905798457,
+     "term_spread": 0.016360169056356632,
+     "mortgage_rate": 0.022570790811607358,
+     "inflation": 0.08262244762951008
+    },
+    "observed_change": {
+     "equity_log": -0.02669479653910207,
+     "house_log": 0.04989270011353216,
+     "short_rate": 0.019409545454545454,
+     "term_spread": 0.009590454545454544,
+     "mortgage_rate": 0.0242,
+     "inflation": 0.053000000000000005
+    },
+    "detection": {
+     "series": "mortgage_rate",
+     "rule": "max_rise_12m",
+     "search": [
+      "2021-01",
+      "2023-12"
+     ]
+    }
+   },
+   {
+    "name": "de_housing_slump",
+    "description": "German housing slump: house-price peak-to-trough",
+    "window": [
+     "2022-06",
+     "2024-03"
+    ],
+    "duration_months": 21,
+    "regime_path": [
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": 0.3079084981705913,
+     "house_log": -0.16210196858273168,
+     "short_rate": 0.04372139945238804,
+     "term_spread": -0.018243953582513402,
+     "mortgage_rate": 0.007856304838799358,
+     "inflation": -0.04056317280877877
+    },
+    "observed_change": {
+     "equity_log": 0.2782485476279578,
+     "house_log": -0.1377111270272308,
+     "short_rate": 0.04488554545454546,
+     "term_spread": -0.023285545454545465,
+     "mortgage_rate": 0.008400000000000001,
+     "inflation": -0.059000000000000004
+    },
+    "detection": {
+     "series": "house_index",
+     "rule": "drawdown",
+     "search": [
+      "2021-01",
+      "2025-12"
+     ]
+    }
+   }
+  ],
+  "hmm": [
+   {
+    "name": "gfc_2008",
+    "description": "Global financial crisis: equity peak-to-trough",
+    "window": [
+     "2007-05",
+     "2009-02"
+    ],
+    "duration_months": 21,
+    "regime_path": [
+     "Recovery",
+     "Recovery",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle"
+    ],
+    "shocks": {
+     "equity_log": -0.6310735314541716,
+     "house_log": -0.03938950711748852,
+     "short_rate": -0.009518702474959293,
+     "term_spread": -0.001638536819658603,
+     "mortgage_rate": 0.0033266140182262095,
+     "inflation": -0.026988496716785063
+    },
+    "observed_change": {
+     "equity_log": -0.6566372875426674,
+     "house_log": 0.022642476749759752,
+     "short_rate": -0.025333545454545442,
+     "term_spread": -0.0048664545454545505,
+     "mortgage_rate": -0.0024999999999999953,
+     "inflation": -0.009
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2007-01",
+      "2009-12"
+     ]
+    }
+   },
+   {
+    "name": "euro_crisis_2011",
+    "description": "Euro sovereign debt crisis: equity peak-to-trough",
+    "window": [
+     "2011-02",
+     "2011-09"
+    ],
+    "duration_months": 7,
+    "regime_path": [
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle"
+    ],
+    "shocks": {
+     "equity_log": -0.16609114998819915,
+     "house_log": 0.012236634891272746,
+     "short_rate": 0.00500946371982664,
+     "term_spread": -0.011265024558646444,
+     "mortgage_rate": -0.0024469699336751066,
+     "inflation": 0.0019525887496058985
+    },
+    "observed_change": {
+     "equity_log": -0.16704239090127093,
+     "house_log": 0.03584613177313566,
+     "short_rate": 0.002983545454545454,
+     "term_spread": -0.011883545454545456,
+     "mortgage_rate": -0.003700000000000002,
+     "inflation": 0.005999999999999995
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2011-01",
+      "2012-12"
+     ]
+    }
+   },
+   {
+    "name": "covid_2020",
+    "description": "COVID-19 crash: equity peak-to-trough",
+    "window": [
+     "2020-01",
+     "2020-03"
+    ],
+    "duration_months": 2,
+    "regime_path": [
+     "Expansion",
+     "Late-cycle"
+    ],
+    "shocks": {
+     "equity_log": -0.23558188443438097,
+     "house_log": 0.0008886482976316629,
+     "short_rate": -0.0002709001135959272,
+     "term_spread": -0.0007600034496515403,
+     "mortgage_rate": -0.002411463216919875,
+     "inflation": -0.00538097587009427
+    },
+    "observed_change": {
+     "equity_log": -0.22599450449420727,
+     "house_log": 0.008022965670999244,
+     "short_rate": 3.863636363636482e-05,
+     "term_spread": -0.0002386363636363636,
+     "mortgage_rate": -0.0017000000000000019,
+     "inflation": -0.004
+    },
+    "detection": {
+     "series": "equity_index",
+     "rule": "drawdown",
+     "search": [
+      "2020-01",
+      "2020-12"
+     ]
+    }
+   },
+   {
+    "name": "rate_shock_2022",
+    "description": "2022 rate shock: largest 12-month rise in German mortgage rates",
+    "window": [
+     "2021-11",
+     "2022-11"
+    ],
+    "duration_months": 12,
+    "regime_path": [
+     "Expansion",
+     "Expansion",
+     "Expansion",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": -0.057301464127125314,
+     "house_log": 0.014051910060243027,
+     "short_rate": 0.019737759276186734,
+     "term_spread": 0.011608997271457191,
+     "mortgage_rate": 0.022038069077686347,
+     "inflation": 0.07096659389609983
+    },
+    "observed_change": {
+     "equity_log": -0.02669479653910207,
+     "house_log": 0.04989270011353216,
+     "short_rate": 0.019409545454545454,
+     "term_spread": 0.009590454545454544,
+     "mortgage_rate": 0.0242,
+     "inflation": 0.053000000000000005
+    },
+    "detection": {
+     "series": "mortgage_rate",
+     "rule": "max_rise_12m",
+     "search": [
+      "2021-01",
+      "2023-12"
+     ]
+    }
+   },
+   {
+    "name": "de_housing_slump",
+    "description": "German housing slump: house-price peak-to-trough",
+    "window": [
+     "2022-06",
+     "2024-03"
+    ],
+    "duration_months": 21,
+    "regime_path": [
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Late-cycle",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession",
+     "Recession"
+    ],
+    "shocks": {
+     "equity_log": 0.07616591775784462,
+     "house_log": -0.11625646385377511,
+     "short_rate": 0.03502258202816675,
+     "term_spread": -0.018068713286354152,
+     "mortgage_rate": 0.003923980701725023,
+     "inflation": -0.025986960859796127
+    },
+    "observed_change": {
+     "equity_log": 0.2782485476279578,
+     "house_log": -0.1377111270272308,
+     "short_rate": 0.04488554545454546,
+     "term_spread": -0.023285545454545465,
+     "mortgage_rate": 0.008400000000000001,
+     "inflation": -0.059000000000000004
+    },
+    "detection": {
+     "series": "house_index",
+     "rule": "drawdown",
+     "search": [
+      "2021-01",
+      "2025-12"
+     ]
+    }
+   }
+  ]
+ }
+}

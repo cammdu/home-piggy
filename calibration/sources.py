@@ -152,11 +152,11 @@ DESTATIS_HPI = "https://www-genesis.destatis.de/datenbank/online/statistic/61262
 MANUAL_FILES["house_de"] = "destatis_61262.csv"
 
 REGISTRY_DE: dict[str, Series] = {s.name: s for s in [
-    Series("house_de", "Destatis (GENESIS-Online)", "61262-0001 Häuserpreisindex, Deutschland, Quartale",
+    Series("house_de", "Destatis (GENESIS-Online)", "61262-0002 Häuserpreisindex, Deutschland, Quartale",
            DESTATIS_HPI, "Q", "index", "House price index for owner-occupied residential property (existing and new), "
            "Germany, quarterly from 2000. Downloaded manually in a browser.", "Destatis: Datenlizenz Deutschland 2.0"),
     _ecb("house_de_ecb", "RESR.Q.DE._T.N._TR.TVAL.4D0.TB.N.IX", "Q", "index",
-         "House price index, total, Germany (Destatis, via ECB), quarterly from 2005 (cross-check)"),
+         "House price index, total, Germany (Destatis Häuserpreisindex, via ECB), quarterly from 2005 Q1"),
     _ecb("mortgage_de", "MIR.M.DE.B.A2C.P.R.A.2250.EUR.N", "M", "% p.a.",
          "DE bank rates, new loans to households for house purchase, initial rate fixation over 10 years"),
     _eurostat("hicp_de_anr", "prc_hicp_minr?geo=DE&coicop18=TOTAL&unit=RCH_A", "% y/y",

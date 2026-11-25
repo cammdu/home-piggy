@@ -118,6 +118,31 @@ def test_round_trip_engine_to_estimator():
     assert abs(hl - mp.levels["short_rate"].half_life_months) / mp.levels["short_rate"].half_life_months < 0.35
 
 
+
+def test_no_exit_prior_only_touches_absorbing_rows():
+    """A regime seen only in one final, unfinished spell has no observed exits: the MLE makes it absorbing.
+    With no_exit_prior the row becomes (n + 1) / (N + k); every other row is the plain MLE either way."""
+    mp = load_market_params(SYNTH)
+    n, T = 1, 3000
+    rng = np.random.default_rng(7)
+    reg = simulate_regimes(mp.P, n, T, np.zeros(n, int), rng.random((n, T)), (), mp.regimes)
+    m = simulate_market(mp, reg, rng.standard_normal((n, T, len(STATE_VARS))))
+    lab = reg[0, 1:].astype(int)
+    lab[lab == 2] = 0
+    lab[-300:] = 2                                   # one final spell, never left
+    rows = {"equity": m.equity_logret[0], "house": np.diff(np.log(m.house_index[0]))}
+    for v in ("short_rate", "term_spread", "mortgage_rate", "inflation"):
+        rows[v] = getattr(m, v)[0, 1:]
+    vp = np.ones(T, bool); vp[0] = False
+    off = estimate(rows, lab, vp, mp.regimes)
+    on = estimate(rows, lab, vp, mp.regimes, no_exit_prior=True)
+    P0, P1, C = (np.array(off.params["transition_matrix"]), np.array(on.params["transition_matrix"]),
+                 np.array(on.diagnostics["transition_counts"]))
+    assert P0[2, 2] == 1.0 and C[2].sum() == C[2, 2] == 299
+    np.testing.assert_allclose(P1[2], (C[2] + 1) / (C[2].sum() + 4))
+    np.testing.assert_array_equal(np.delete(P1, 2, axis=0), np.delete(P0, 2, axis=0))
+    assert on.diagnostics["no_exit_prior_rows"] == [mp.regimes[2]] and off.diagnostics["no_exit_prior_rows"] == []
+
 # ------------------------------------------------------------------ shrinkage and bootstrap
 def test_ledoit_wolf_limits():
     rng = np.random.default_rng(6)

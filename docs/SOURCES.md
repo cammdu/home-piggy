@@ -50,6 +50,32 @@ Machine-readable: [`homepiggy/data/uk/policy_2026.yaml`](../homepiggy/data/uk/po
 
 UK market data sources and hashes: [CALIBRATION_UK.md](CALIBRATION_UK.md), section 1.
 
+## Germany policy, as in force on 2026-11-24
+
+Machine-readable: [`homepiggy/data/de/policy_2026.yaml`](../homepiggy/data/de/policy_2026.yaml).
+
+| Item | Value | Source | Level |
+|---|---|---|---|
+| Grunderwerbsteuer by Land | 3.5% (BY) to 6.5% (BB, NW, SL, SH); full table in the policy file | [Wikipedia: Grunderwerbsteuer (Deutschland)](https://de.wikipedia.org/wiki/Grunderwerbsteuer_(Deutschland)) | secondary; not yet cross-checked against each Land's law |
+| Default Land | Bavaria | user decision | choice |
+| Notary and land registry | notary 1.0% + 19% VAT, land registry 0.5% of the price (typical values) | [Wikipedia: Nebenkosten beim Grundstückskauf](https://de.wikipedia.org/wiki/Nebenkosten_beim_Grundst%C3%BCckskauf) | secondary |
+| Loan-to-value | 100% of the price; costs paid in cash | no statutory cap | assumption |
+| Lending rule | payment ≤ 35% of net income; payment = (rate + 2% initial repayment) × loan / 12 | [Dr. Klein](https://www.drklein.de/einkommen-baufinanzierung-faq-1.html) (35–40%, lower end used) | secondary; 2% repayment is an assumption |
+| Income tax tariff 2026 | § 32a EStG zones 12,348 / 17,799 / 69,878 / 277,825 | [§ 32a EStG](https://www.gesetze-im-internet.de/estg/__32a.html) | primary |
+| Lump sums | €1,230 employee, €36 special expenses | [§ 9a EStG](https://www.gesetze-im-internet.de/estg/__9a.html), § 10c EStG | primary |
+| Solidarity surcharge | 5.5%; exemption limit €20,350 of income tax; phase-in 11.9% of the excess | [§ 3 SolZG](https://www.gesetze-im-internet.de/solzg_1995/__3.html) | primary |
+| Social insurance 2026, employee | pension 9.3%, unemployment 1.3%, health 7.3% + 1.45%, care 1.8% + 0.6% childless from 23; ceilings €101,400 / €69,750 | [Techniker Krankenkasse](https://www.tk.de/firmenkunden/fachthemen/fachthema-beitraege/sozialversicherungs-rechengroessen-2026-2203234) | secondary |
+| Capital income tax | 25% + 5.5% solidarity surcharge; €1,000 saver's allowance; no church tax | [§ 20 EStG](https://www.gesetze-im-internet.de/estg/__20.html) | primary |
+| Advance lump sum (Vorabpauschale) | 70% × base rate × value at start, capped at the year's gain | [§ 18 InvStG](https://www.gesetze-im-internet.de/invstg_2018/__18.html) | primary |
+| Base rate 2026 | 3.20%, held constant in later years | [Otto Schmidt, BMF letter 13.1.2026](https://www.otto-schmidt.de/news/steuerrecht/basiszins-zur-berechnung-der-vorabpauschale-gem-18-absatz-4-invstg-basiszins-zum-2-1-2026-2026-01-15.html) | secondary; constancy is an assumption |
+| Partial exemption | 30% equity fund (≥ 51% equity), 15% mixed fund (≥ 25%) | [§ 20 InvStG](https://www.gesetze-im-internet.de/invstg_2018/__20.html) | primary; counting protected equity as equity is an assumption |
+| Deemed sale on category change | gain to that date taxed at the actual sale | [§ 22 InvStG](https://www.gesetze-im-internet.de/invstg_2018/__22.html) | primary |
+| Default German saver | the Dutch saver: €60,000 / €400,000 / €550 a month, Bavaria | user decision | choice |
+
+German market data sources and hashes: [CALIBRATION_DE.md](CALIBRATION_DE.md), section 1. House prices: Destatis
+Häuserpreisindex via the [ECB Data Portal](https://data-api.ecb.europa.eu/service/data/RESR/Q.DE._T.N._TR.TVAL.4D0.TB.N.IX?format=csvdata)
+(checked against Destatis tables 61262-0001 and 61262-0002).
+
 ## Saver inputs (user-chosen, not data)
 
 Income, contributions, house price, horizon, student debt, DUO rate and other

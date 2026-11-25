@@ -1,0 +1,114 @@
+{
+ "country": "de",
+ "year": 2026,
+ "currency": "EUR",
+ "transfer_tax": {
+  "rates": {
+   "BW": 0.05,
+   "BY": 0.035,
+   "BE": 0.06,
+   "BB": 0.065,
+   "HB": 0.055,
+   "HH": 0.055,
+   "HE": 0.06,
+   "MV": 0.06,
+   "NI": 0.05,
+   "NW": 0.065,
+   "RP": 0.05,
+   "SL": 0.065,
+   "SN": 0.055,
+   "ST": 0.05,
+   "SH": 0.065,
+   "TH": 0.05
+  },
+  "names": {
+   "BW": "Baden-W\u00fcrttemberg",
+   "BY": "Bayern",
+   "BE": "Berlin",
+   "BB": "Brandenburg",
+   "HB": "Bremen",
+   "HH": "Hamburg",
+   "HE": "Hessen",
+   "MV": "Mecklenburg-Vorpommern",
+   "NI": "Niedersachsen",
+   "NW": "Nordrhein-Westfalen",
+   "RP": "Rheinland-Pfalz",
+   "SL": "Saarland",
+   "SN": "Sachsen",
+   "ST": "Sachsen-Anhalt",
+   "SH": "Schleswig-Holstein",
+   "TH": "Th\u00fcringen"
+  },
+  "default_state": "BY"
+ },
+ "notary_land_registry": {
+  "notary_rate": 0.01,
+  "notary_vat": 0.19,
+  "land_registry_rate": 0.005
+ },
+ "lending": {
+  "max_ltv": 1.0,
+  "payment_share_of_net_income": 0.35,
+  "initial_repayment_rate": 0.02
+ },
+ "income_tax": {
+  "zones_upper_eur": [
+   12348,
+   17799,
+   69878,
+   277825
+  ],
+  "zone2": {
+   "a": 914.51,
+   "b": 1400.0
+  },
+  "zone3": {
+   "a": 173.1,
+   "b": 2397.0,
+   "c": 1034.87
+  },
+  "zone4": {
+   "rate": 0.42,
+   "minus": 11135.63
+  },
+  "zone5": {
+   "rate": 0.45,
+   "minus": 19470.38
+  },
+  "employee_lump_sum_eur": 1230,
+  "special_expenses_lump_sum_eur": 36
+ },
+ "solidarity_surcharge": {
+  "rate": 0.055,
+  "exemption_limit_single_eur": 20350,
+  "phase_in_rate": 0.119
+ },
+ "social_insurance": {
+  "pension": 0.093,
+  "unemployment": 0.013,
+  "health": 0.073,
+  "health_average_additional": 0.0145,
+  "care": 0.018,
+  "care_childless_surcharge": 0.006,
+  "ceiling_pension_eur": 101400,
+  "ceiling_health_eur": 69750
+ },
+ "fund_tax": {
+  "rate": 0.26375,
+  "allowance": 1000.0,
+  "base_rate": 0.032,
+  "factor": 0.7,
+  "tf_equity": 0.3,
+  "tf_mixed": 0.15,
+  "th_equity": 0.51,
+  "th_mixed": 0.25
+ },
+ "sources": {
+  "transfer_tax": "https://de.wikipedia.org/wiki/Grunderwerbsteuer_(Deutschland)",
+  "notary": "https://de.wikipedia.org/wiki/Nebenkosten_beim_Grundst%C3%BCckskauf",
+  "income_tax": "https://www.gesetze-im-internet.de/estg/__32a.html",
+  "fund_tax": "https://www.gesetze-im-internet.de/invstg_2018/__18.html",
+  "base_rate": "https://www.otto-schmidt.de/news/steuerrecht/basiszins-zur-berechnung-der-vorabpauschale-gem-18-absatz-4-invstg-basiszins-zum-2-1-2026-2026-01-15.html",
+  "lending": "https://www.drklein.de/einkommen-baufinanzierung-faq-1.html"
+ }
+}

@@ -99,7 +99,8 @@ export function detail(params, policy, saver, nPaths, optTable) {
     income_loan: a.incomeLoan, transfer_tax: a.tt, nhg: a.nhg, other: a.other, deposit_target: G[best],
     deposit_pct: s.own_target_pct, income_gap: a.gap, income_target: r.Ginc[best], age: s.age_at_start + T / 12,
     house_growth_pa: r.housePa[best], lisa_charge: r.strategies[0].charge[best], pot: r.strategies[0].V[best],
-    p_lisa_charged: r.strategies[0].charge.filter(x => x > 0).length / r.nPaths };
+    p_lisa_charged: r.strategies[0].charge.filter(x => x > 0).length / r.nPaths,
+    exit_tax: r.strategies[0].exitTax ? r.strategies[0].exitTax[best] : 0 };
   return { T, fan, weights: S.map((x, k) => ({ key: x.key, W: r.strategies[k].W })), typical };
 }
 

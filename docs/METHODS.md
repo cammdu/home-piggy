@@ -375,6 +375,72 @@ numpy's draws through both engines for four UK cases (Lifetime ISA on and off, i
 to open a Lifetime ISA, prices on both sides of the £450,000 and £500,000 thresholds); they agree to
 rtol 1e-9. A mutation test (a 0.1% change in the charge) makes the test fail.
 
+## 13. Germany: data, quarterly house prices, rules and fund tax (`dataset_de.py`, `affordability_de.py`)
+
+**Same model, German inputs.** As for the UK (section 12), every model component is reused unchanged and only
+data and rules differ, with two declared additions: a quarterly house-price estimator and German fund tax.
+Calibration: `python -m calibration.calibrate --country de`; details in [CALIBRATION_DE.md](CALIBRATION_DE.md).
+
+**Data.** Euro-area short rate (EONIA − 8.5 bp, then €STR) and global equity in euros, as for NL; the 2-year
+German federal zero-coupon yield (Bundesbank); German new mortgage loans with over 10 years' fixation (ECB MIR);
+German HICP inflation (Eurostat); and the Destatis house price index (Häuserpreisindex, all residential
+property, 2025 = 100) as published by the ECB Data Portal from 2005 Q1 (RESR.Q.DE._T.N._TR.TVAL.4D0.TB.N.IX;
+values match Destatis table 61262-0002 in all 6 quarters downloaded, 2025 Q1–2026 Q2, and the yearly
+averages match table 61262-0001 to 0.1 for 2005–2025). Regime indicators: German GDP y/y and
+unemployment change (Eurostat), HICP, the ECB deposit rate and the German CISS, with publication lags.
+Destatis' own download starts in 2000 but needs a manual browser download; the ECB copy is used so the
+pipeline runs unattended, at the cost of 2000–2004.
+
+**Quarterly house prices (temporal aggregation).** Only quarterly changes are observed. The monthly model is
+unchanged: latent monthly growth g_t = μ_{s_t} + d_t, d_t = φ d_{t−1} + σ_{s_t} ε_t. The observed quarterly log
+change at a quarter-end month t is y_t = Σ_{j=0..2} μ_{s_{t−j}} + Σ_{j=0..2} d_{t−j} + e_t − e_{t−3}, with
+e the index measurement error (iid N(0, τ²) per quarter). The Kalman state is (d_t, d_{t−1}, d_{t−2}, e_q,
+e_{q−1}); months without an observation are prediction steps only. μ, φ, σ and τ are estimated by maximum
+likelihood (`estimate._house_kalman_q`). Tested on simulated data with known parameters (φ recovered within
+0.06, σ within sampling error). House correlations with the other variables are estimated at quarterly
+frequency (standardised quarterly innovations against the 3-month sums of the other residuals), inserted into
+each regime's matrix and made a valid correlation matrix again (negative eigenvalues clipped to 1e-6, then
+rescaled to a unit diagonal; `estimate._nearest_corr`).
+
+**Transition rows with no observed exits.** If the data contain a regime only as one unfinished spell (no
+month in which it is left), the maximum-likelihood transition row puts probability 1 on staying, so simulated
+paths that enter it never leave. For Germany this happens in the HMM labelling: the last 44 months (2022 Q4 to
+2026 Q2) form one Recession spell. Such a row is replaced by its posterior mean under a uniform
+Dirichlet(1, …, 1) prior, (n_rj + 1)/(n_r + k) (Laplace's rule of succession); rows with any observed exit
+are left as the MLE. The rule is on for Germany only, so the published NL and UK calibrations reproduce
+exactly (their HMM bootstraps contain such rows in 10% and 13.5% of replicates; see LIMITATIONS L-section).
+Each use is counted in the calibration report.
+
+**Rules** (`homepiggy/data/de/policy_2026.yaml`; each number with a source and a verification level):
+- Costs: Grunderwerbsteuer at the chosen Land's rate (3.5% Bavaria, the default, to 6.5%), notary 1.0% of
+  the price plus 19% VAT, land registry 0.5%. No first-time buyer exemption exists. Deposit target =
+  deposit % × price + these costs + other costs.
+- Loan limit: 100% of the price (no statutory LTV cap). With the income test on, the annuity
+  (mortgage rate + 2% initial repayment) × loan / 12 may be at most 35% of monthly net income, so
+  L_inc = 0.35 × net income / (rate + 0.02).
+- Net income of a single employee, no children, no church tax: § 32a EStG 2026 tariff on taxable income
+  (gross − €1,230 − €36 − pension share − 0.96 × health share − care share), solidarity surcharge with its
+  exemption limit, and employee social insurance with the 2026 contribution ceilings. Euro amounts are
+  scaled with simulated CPI (rules kept in real terms), as in the NL module.
+
+**Fund tax** (`FundTax`, applied month by month inside `portfolio.run_portfolio`). The FirstHome fund is one
+German-taxed investment fund whose mix follows the glidepath:
+- every 12 months, the advance lump sum (Vorabpauschale) = min(0.7 × base rate × (value at the start of the
+  period + Σ payments × (13 − m)/12), the period's gain), with the 2026 base rate 3.20% held constant;
+- partial exemption by the fund's equity share (global equity + protected equity): ≥ 51% → 30%,
+  ≥ 25% → 15%, otherwise 0;
+- when the category changes the units are deemed sold and re-bought (§ 22 InvStG); the gain to that date
+  is taxed at the actual sale with the old exemption;
+- at purchase everything is sold: (gain since the last deemed sale − past advance lump sums) × (1 −
+  exemption) plus the deemed-sale gains;
+- tax = 25% × 1.055 on the amount above the €1,000 saver's allowance per 12-month period, paid out of the
+  pot (cost basis and past lump sums reduced pro rata).
+The savings-account benchmark is taxed on its interest every 12 months and at purchase. Tests check the
+lump-sum path, the deemed sale and the interest tax against hand calculations (`tests/test_de_rules.py`).
+
+**Default German saver.** The Dutch default unchanged: €60,000 income, €400,000 home, €550 a month, €1,000
+to start, age 20, 10 years, Bavaria.
+
 ## References
 
 * Black, F. & Scholes, M. (1973). The Pricing of Options and Corporate Liabilities. *JPE* 81(3).

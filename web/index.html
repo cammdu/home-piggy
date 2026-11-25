@@ -164,8 +164,9 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
     <a class="country-card" href="#uk" style="--c:var(--yellow)"><span class="code">UK</span><span class="name">United Kingdom (England)</span>
       <span class="small muted">England 2026 rules: first-time buyer stamp duty relief, 4.5× income limit, ISA and Lifetime ISA. UK data.</span>
       <span class="stat num" id="card-uk-stat">–</span><span class="small" id="card-uk-sub">&nbsp;</span><span class="go">See the UK fund →</span></a>
-    <div class="country-card soon" style="--c:var(--pink)" aria-disabled="true"><span class="code">DE</span><span class="name">Germany</span>
-      <span class="small">Coming soon.</span></div>
+    <a class="country-card" href="#de" style="--c:var(--pink)"><span class="code">DE</span><span class="name">Germany</span>
+      <span class="small muted">German 2026 rules: property transfer tax by state, notary fees, 35%-of-net-income lending rule, investment fund tax. German data.</span>
+      <span class="stat num" id="card-de-stat">–</span><span class="small" id="card-de-sub">&nbsp;</span><span class="go">See the German fund →</span></a>
   </div>
 </div></section>
 <section><div class="wrap">
@@ -215,6 +216,8 @@ footer { padding-block: 32px 48px; border-top: 1px solid var(--line); font-size:
         <span><b>Show details</b><span class="muted small">Each test on its own, your deposit %, growth and safety.</span></span></label>
       <div class="field" id="deposit-field" hidden><label for="deposit">Deposit goal (% of the price) <output id="deposit-out"></output></label>
         <input id="deposit" type="range" min="0" max="30" step="1" value="10"></div>
+      <div class="field" id="region-field" hidden><label for="region">State (Bundesland) <output id="region-out"></output></label>
+        <select id="region"></select></div>
       <label class="switch" for="lisa" id="lisa-field" hidden><input id="lisa" type="checkbox" checked>
         <span><b>Use a Lifetime ISA</b><span class="muted small">On: the first £4,000 a year earns a 25% government bonus, but a home above £450,000 costs a 20% charge on it. Off: a Stocks and Shares ISA only.</span></span></label>
       <label class="switch" for="hmm"><input id="hmm" type="checkbox">
@@ -329,7 +332,8 @@ const NAMES = { opt: "FirstHome (optimised)", today: "Original glidepath", equit
 const COLORS = { opt: "--s-opt", today: "--s-today", equity: "--s-equity", bank: "--s-bank" };
 const SLEEVES = ["Global equity", "Protected equity", "Short bonds", "Cash"];
 const EVENT_NAMES = { gfc_2008: "2008 crash", euro_crisis_2011: "Euro crisis", covid_2020: "Covid 2020",
-  rate_shock_2022: "2022 rate shock", nl_housing_slump: "Dutch housing slump", uk_housing_slump: "England housing slump" };
+  rate_shock_2022: "2022 rate shock", nl_housing_slump: "Dutch housing slump", uk_housing_slump: "England housing slump",
+  de_housing_slump: "German housing slump" };
 
 // Country pages: same model and charts, country-specific inputs, rules and text. Numbers quoted in text come
 // from the policy files (homepiggy/data/<country>/policy_2026.yaml) and the calibration reports.
@@ -423,6 +427,54 @@ const COUNTRIES = {
       };
     },
   },
+  de: {
+    cur: "€", chip: "Germany · 2026 rules", lisa: false,
+    // the Dutch default saver, unchanged (euros); default state Bavaria
+    defaults: { gross_income_eur: 60000, house_price_eur: 400000, monthly_contribution_eur: 550, horizon_years: 10, own_target_pct: 0.10, region: "BY" },
+    sliders: { income: [25000, 150000, 1000], price: [150000, 800000, 5000], monthly: [100, 2000, 25] },
+    regions: [["BW", "Baden-Württemberg"], ["BY", "Bavaria (Bayern)"], ["BE", "Berlin"], ["BB", "Brandenburg"], ["HB", "Bremen"],
+      ["HH", "Hamburg"], ["HE", "Hesse (Hessen)"], ["MV", "Mecklenburg-Vorpommern"], ["NI", "Lower Saxony (Niedersachsen)"],
+      ["NW", "North Rhine-Westphalia"], ["RP", "Rhineland-Palatinate"], ["SL", "Saarland"], ["SN", "Saxony (Sachsen)"],
+      ["ST", "Saxony-Anhalt"], ["SH", "Schleswig-Holstein"], ["TH", "Thuringia (Thüringen)"]],
+    h1: "Save for your first German home in a fund that steps down its risk as buying day gets closer.",
+    note: "Every number on this page is simulated from euro-area and German data (2005–2026): ECB rates, German mortgage rates and inflation, and the Destatis house price index, repeated across 40 re-calibrations of the model so you see the uncertainty, not one lucky run. The default saver is the same as on the Dutch page.",
+    method: [
+      "The economy moves between four regimes (expansion, late cycle, recession, recovery) as a Markov chain, labelled from German growth, inflation, ECB policy-rate and financial-stress data. Global equity in euros, German house prices, interest rates, mortgage rates and inflation follow regime-dependent models fitted to 2005–2026 data.",
+      "German house prices are only published quarterly. The model treats monthly house-price growth as unobserved and fits it so that the three months of each quarter add up to the published quarterly change (a Kalman filter with temporal aggregation).",
+      "Each run simulates 400 futures, month by month, for every strategy on the same futures, so differences come from the strategy and not from luck.",
+      "Parameter uncertainty: the history is resampled in blocks (stationary bootstrap) and the model re-fitted 200 times. The page uses 40 of these; the ranges show how much the answer depends on which history we happened to get.",
+      "The buffer is priced with Black–Scholes using implied volatility linked to the regime, with a volatility premium and skew measured from VIX and SKEW data.",
+      "German 2026 rules: property transfer tax at your state's rate, notary (1.0% plus VAT) and land registry (0.5%) fees, loans up to 100% of the price, and banks' usual limit of 35% of net income for the mortgage payment.",
+      "The fund is taxed as German law taxes an investment fund: a yearly advance lump sum (Vorabpauschale, 70% of the 3.20% base rate), 30% of gains tax-free while the fund holds at least 51% equity (15% from 25%), and the rest of the gain taxed when you sell to buy. Tax is 26.4% (25% plus solidarity surcharge) above the €1,000 yearly saver's allowance. The savings account's interest is taxed every year the same way.",
+      "This page runs the same model as the Python version in your browser. An automated test feeds both the same random numbers and checks they agree to 1 part in a billion."],
+    limits: [
+      "German house prices are only available from 2005 in the series used, so the history holds fewer cycles than for the Netherlands. Events before it, such as 1970s inflation, can't appear in the simulations.",
+      "The two ways of labelling regimes agree on only about half the months (51% agreement, κ 0.24), and the HMM method sees too few recovery months to estimate them reliably. Switch on HMM regimes to see how much the answer moves; in a 2008-style crash just before buying, the HMM version shows little benefit over the original glidepath.",
+      "House prices are the national Destatis index. Big cities and rural areas move very differently.",
+      "Income grows steadily with inflation plus 1% a year; job loss and pay shocks are not modelled. Net income assumes a single employee without children or church tax.",
+      "Tax is simplified: 12-month periods from the start stand in for calendar years, and a change in the fund's equity share is treated as a sale at that moment, as § 22 InvStG requires.",
+      "Option prices use US volatility data as a proxy for European markets."],
+    sources: "Data: ECB (rates, German mortgage rates, German house prices from Destatis, German CISS, exchange rates), Eurostat (HICP, GDP, unemployment), Bundesbank (yield curve), Kenneth French data library, FRED, Cboe; rules from § 32a EStG, § 20 EStG, SolZG and InvStG (gesetze-im-internet.de), state transfer-tax rates and notary and land-registry costs (secondary summaries), the 35% lending rule (Dr. Klein), 2026 social-insurance values (Techniker Krankenkasse) and the 2026 base rate (Otto Schmidt). Each source is listed in the model's policy file.",
+    why: () => `Saving more can even lower it slightly (in our check across 40 re-calibrations, from 84% at €300 a month to 82% at €2,000): the €1,000 yearly tax-free allowance covers a smaller share of a bigger pot's gains, so more of them are taxed at 26.4% and the return after tax is lower.`,
+    anatomy(t) {
+      const st = state.saver.region, nm = (COUNTRIES.de.regions.find(r => r[0] === st) || [st, st])[1];
+      return {
+        goal: row("House price at purchase", "", fmtEur(t.price)) +
+          row(`Your deposit (${pct(t.deposit_pct)} of the price)`, "", fmtEur(t.deposit_pct * t.price)) +
+          row("Property transfer tax", `Grunderwerbsteuer, ${nm}: ${regionRate(st)}`, fmtEur(t.transfer_tax)) +
+          row("Notary and land registry", "about 1.7% of the price", fmtEur(t.nhg)) +
+          (t.other > 0 ? row("Other buying costs", "", fmtEur(t.other)) : "") +
+          row("Deposit target", "", fmtEur(t.deposit_target), "total"),
+        income: row("Gross income at purchase", "", fmtEur(t.income)) +
+          row("Net income after tax and social insurance", "single, no children", fmtEur(t.flp)) +
+          row("Mortgage rate", "plus 2% repayment a year", pct(t.test_rate, 2)) +
+          row("Most you can borrow on that income", "payment up to 35% of net income", fmtEur(t.income_loan)) +
+          row("Price + costs − that loan", "", fmtEur(t.income_gap)) +
+          row("Own money needed with the income limit", "max of this and your deposit goal", fmtEur(t.income_target), "total"),
+        extra: t.exit_tax > 0 ? `In this future, selling the fund to buy costs ${fmtEur(t.exit_tax)} in tax on the gains, already taken off the pot.` : "",
+      };
+    },
+  },
 };
 let CC = null, CFG = null;                        // current country code and its config
 const DATA = {};                                  // per country: { PRE, EVENTS }
@@ -471,7 +523,8 @@ async function task(msg) {
   return m.stress(reps[msg.idx], pol, msg.saver, msg.event, msg.nPaths, msg.optTable);
 }
 
-function isDefault(s) { return Object.keys(CFG.defaults).every(k => Math.abs(s[k] - CFG.defaults[k]) < 1e-9); }
+function isDefault(s) { return Object.keys(CFG.defaults).every(k => typeof CFG.defaults[k] === "string" ? s[k] === CFG.defaults[k] : Math.abs(s[k] - CFG.defaults[k]) < 1e-9); }
+const regionRate = (k) => { const r = DATA.de?.POL?.transfer_tax?.rates?.[k]; return r === undefined ? "" : pct(r, 1); };
 const keyOf = (method, saver) => JSON.stringify([CC, method, saver]);
 const precomputedFor = (method, saver) => !isDefault(saver) ? null
   : (saver.lisa === false && PRE.methods_no_lisa) ? PRE.methods_no_lisa[method] : (saver.lisa === false ? null : PRE.methods[method]);
@@ -791,6 +844,7 @@ function bindInputs() {
   $("details").addEventListener("change", (e) => { state.details = e.target.checked; $("details-block").hidden = !state.details; $("deposit-field").hidden = !state.details; });
   $("hmm").addEventListener("change", (e) => { state.method = e.target.checked ? "hmm" : "repo"; compute(); });
   $("lisa").addEventListener("change", (e) => { state.saver.lisa = e.target.checked; changed(); });
+  $("region").addEventListener("change", (e) => { state.saver.region = e.target.value; $("region-out").textContent = regionRate(e.target.value); changed(); });
   $("inputs").addEventListener("submit", (e) => e.preventDefault());
   let rt = null;
   new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(render, 120); }).observe(document.body);
@@ -805,13 +859,19 @@ function applyCountryInputs() {
   $("deposit").value = Math.round(d.own_target_pct * 100); $("deposit-out").textContent = $("deposit").value + "%";
   $("horizon").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.v === d.horizon_years));
   $("lisa-field").hidden = !CFG.lisa; $("lisa").checked = true;
+  $("region-field").hidden = !CFG.regions;
+  if (CFG.regions) {
+    $("region").innerHTML = CFG.regions.map(([k, n]) => `<option value="${k}"${k === d.region ? " selected" : ""}>${n}</option>`).join("");
+    $("region-out").textContent = regionRate(d.region);
+  }
   $("hmm").checked = state.method === "hmm";
 }
 
 async function loadCountry(c) {
   if (!DATA[c]) {
-    const [pre, ev] = await Promise.all([getJSON(`${c}/precomputed`), getJSON(`${c}/scenarios`).then(x => x.events)]);
-    DATA[c] = { PRE: pre, EVENTS: ev };
+    const [pre, ev, pol] = await Promise.all([getJSON(`${c}/precomputed`), getJSON(`${c}/scenarios`).then(x => x.events),
+      COUNTRIES[c].regions ? getJSON(`${c}/policy_2026`) : null]);
+    DATA[c] = { PRE: pre, EVENTS: ev, POL: pol };
   }
   return DATA[c];
 }

@@ -392,8 +392,12 @@ def _level_ar(y: np.ndarray, lab: np.ndarray, vp: np.ndarray, k: int):
 
 def estimate(rows: dict[str, np.ndarray], labels: np.ndarray, valid_prev: np.ndarray,
              regimes: tuple[str, ...], fallback: dict[str, Any] | None = None,
-             house_freq: str = "M") -> Estimates:
-    """house_freq='Q': rows['house'] holds quarterly log changes at quarter-end months (NaN elsewhere); the
+             house_freq: str = "M", no_exit_prior: bool = False) -> Estimates:
+    """no_exit_prior=True (Germany): a transition row with no observed exits (all off-diagonal counts zero, so the MLE
+    makes the regime absorbing) is replaced by its posterior mean under a uniform Dirichlet(1, ..., 1) prior,
+    (n_rj + 1) / (n_r + k) (Laplace's rule of succession). Rows with observed exits are unchanged. Off for NL/UK so
+    their published calibrations reproduce exactly. Each use is reported in diagnostics['no_exit_prior_rows'].
+    house_freq='Q': rows['house'] holds quarterly log changes at quarter-end months (NaN elsewhere); the
     house block is estimated with `_house_kalman_q` and its correlations at quarterly frequency (see below)."""
     k = len(regimes)
     lab = labels.astype(int)
@@ -407,8 +411,12 @@ def estimate(rows: dict[str, np.ndarray], labels: np.ndarray, valid_prev: np.nda
     C = _transition(lab, valid_prev, k)
     diag["transition_counts"] = C.tolist()
     P = np.zeros((k, k))
+    diag["no_exit_prior_rows"] = []
     for r in range(k):
-        if C[r].sum() > 0 and not thin[r]:
+        if C[r].sum() > 0 and not thin[r] and no_exit_prior and C[r].sum() == C[r, r]:
+            P[r] = (C[r] + 1.0) / (C[r].sum() + k)
+            diag["no_exit_prior_rows"].append(regimes[r])
+        elif C[r].sum() > 0 and not thin[r]:
             P[r] = C[r] / C[r].sum()
         elif fallback is not None:
             P[r] = fallback["transition_matrix"][r]

@@ -22,7 +22,7 @@ from homepiggy.metrics import irr_monthly
 from homepiggy.glidepath import DEFAULT_TABLE, GlidepathSpec
 from homepiggy.scenarios import historical_scenario
 from homepiggy.uncertainty import load_bootstrap
-from tools.export_web_data import params_to_web, policy_to_web, policy_uk_to_web
+from tools.export_web_data import params_to_web, policy_de_to_web, policy_to_web, policy_uk_to_web
 
 ROOT = Path(__file__).resolve().parents[1]
 NODE = shutil.which("node")
@@ -51,6 +51,20 @@ CASES = [
     dict(name="uk_repo_lisa_mid_price", country="uk", method="uk_bootstrap", rep=31,
          saver=dict(house_price_eur=380000.0, monthly_contribution_eur=250.0), buyer={}, table=None,
          event=None, end=0, lisa=True),
+    # Germany: Bavaria default (fund tax: lump sums, deemed sales at each category change, exit tax); a high-tax
+    # state with the income test in the housing slump; all equity (no category change) with large payments;
+    # an older buyer in Berlin with an 8-year horizon in the 2022 rate shock
+    dict(name="de_repo_default_bavaria", country="de", method="de_bootstrap", rep=0, saver={}, buyer={}, table=None,
+         event=None, end=0),
+    dict(name="de_hmm_nrw_income_test_slump", country="de", method="de_bootstrap_hmm", rep=11,
+         saver=dict(apply_income_test=True, gross_income_eur=45000.0), buyer=dict(region="NW", other_costs_eur=5000.0),
+         table=None, event="de_housing_slump", end=0),
+    dict(name="de_repo_all_equity_big_saver", country="de", method="de_bootstrap", rep=77,
+         saver=dict(monthly_contribution_eur=1800.0, initial_eur=20000.0), buyer=dict(region="BE"), table=ALL_EQUITY,
+         event="gfc_2008", end=6),
+    dict(name="de_repo_older_berlin_rate_shock", country="de", method="de_bootstrap", rep=140,
+         saver=dict(horizon_years=8, gross_income_eur=90000.0, apply_income_test=True),
+         buyer=dict(region="BE", age_at_start=35.0), table=None, event="rate_shock_2022", end=12),
 ]
 N_PATHS = 40
 
@@ -87,7 +101,8 @@ def _case(c: dict, scen: dict) -> tuple[dict, dict]:
         f = -port.contributions.copy(); f[:, -1] += port.value[:, -1]
         return (1.0 + irr_monthly(f)) ** 12 - 1.0
     s = {k: v for k, v in vars(saver).items() if k != "buyer"} | vars(buyer) | {"lisa": c.get("lisa", True)}
-    web_pol = policy_uk_to_web() if country == "uk" else json.loads(json.dumps(policy_to_web(), default=str))
+    web_pol = (policy_uk_to_web() if country == "uk" else policy_de_to_web() if country == "de"
+               else json.loads(json.dumps(policy_to_web(), default=str)))
     fx = {"name": c["name"], "policy": web_pol, "params": params_to_web(params), "saver": s, "table": table, "event": event,
           "end_months_before_purchase": c["end"], "n_paths": N_PATHS, "draws": draws, "mid_month": T // 2}
     exp = {"V": r.portfolio.value[:, -1], "B": r.benchmark.value[:, -1], "G": r.target_path[:, -1],
@@ -101,7 +116,7 @@ def _case(c: dict, scen: dict) -> tuple[dict, dict]:
 
 @pytest.fixture(scope="module")
 def parity(tmp_path_factory):
-    scen = {c: json.loads((ROOT / "params" / f"{c}_scenarios.json").read_text())["events"] for c in ("nl", "uk")}
+    scen = {c: json.loads((ROOT / "params" / f"{c}_scenarios.json").read_text())["events"] for c in ("nl", "uk", "de")}
     fxs, exps = zip(*[_case(c, scen) for c in CASES])
     d = tmp_path_factory.mktemp("parity")
     (d / "fx.json").write_text(json.dumps({"cases": list(fxs)}))
@@ -135,3 +150,6 @@ def test_cases_exercise_the_rules(parity):
     price_T = 335_000.0 * np.asarray(got["house_index"]).reshape(-1, T1)[:, -1]
     assert np.any(price_T > 450_000) and np.any(price_T <= 450_000)
     assert np.any(price_T > 500_000)                                       # SDLT relief lost on some paths
+    # Germany: the default case must have paths on both sides of the success threshold
+    _, exp = parity["de_repo_default_bavaria"]
+    assert 0.0 < np.mean(exp["V"] >= exp["G"]) < 1.0
